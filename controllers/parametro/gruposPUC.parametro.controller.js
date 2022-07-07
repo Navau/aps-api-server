@@ -98,6 +98,7 @@ function Insertar(req, res) {
   } else {
     const params = {
       body: body,
+      newID,
     };
     let query = InsertarUtil(nameTable, params);
     pool.query(query, (err, result) => {

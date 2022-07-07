@@ -308,39 +308,45 @@ function InsertarUtil(table, params) {
   params.body && (query = query + `INSERT INTO public."${table}"`);
   query && (query = query + " (");
 
+  let idAux = ValidarIDActualizarUtil(table, params.body, params?.newID);
+
   query &&
     map(params.body, (item, index) => {
-      index = ponerComillasACamposConMayuscula(index);
-      index && (query = query + `${index}, `);
+      if (idAux.idKey !== index) {
+        index = ponerComillasACamposConMayuscula(index);
+        index && (query = query + `${index}, `);
+      }
     });
 
   query && (query = query.substring(0, query.length - 2));
   query && (query = query + ") VALUES (");
 
   map(params.body, (item, index) => {
-    if (typeof item === "string") {
-      if (index === "password") {
-        index && (query = query + `crypt('${item}', gen_salt('bf')), `);
-      } else if (index === "fecha_activo") {
-        index &&
-          (query =
-            query + `'${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}', `);
+    if (idAux.idKey !== index) {
+      if (typeof item === "string") {
+        if (index === "password") {
+          index && (query = query + `crypt('${item}', gen_salt('bf')), `);
+        } else if (index === "fecha_activo") {
+          index &&
+            (query =
+              query + `'${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}', `);
+        } else {
+          index && (query = query + `'${item}', `);
+        }
+      } else if (typeof item === "number") {
+        index && (query = query + `${item}, `);
+      } else if (typeof item === "boolean") {
+        index && (query = query + `${item}, `);
+      } else if (typeof item === "object" && item === null) {
+        index && (query = query + `${item}, `);
       } else {
-        index && (query = query + `'${item}', `);
-      }
-    } else if (typeof item === "number") {
-      index && (query = query + `${item}, `);
-    } else if (typeof item === "boolean") {
-      index && (query = query + `${item}, `);
-    } else if (typeof item === "object" && item === null) {
-      index && (query = query + `${item}, `);
-    } else {
-      if (index === "fecha_activo") {
-        index &&
-          (query =
-            query + `'${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}', `);
-      } else {
-        index && (query = query + `'${item}', `);
+        if (index === "fecha_activo") {
+          index &&
+            (query =
+              query + `'${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}', `);
+        } else {
+          index && (query = query + `'${item}', `);
+        }
       }
     }
   });
