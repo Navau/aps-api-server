@@ -266,7 +266,20 @@ function EscogerUtil(table, params) {
         index = ponerComillasACamposConMayuscula(index);
         if (item !== null && typeof item !== "undefined") {
           if (typeof item === "string") {
-            index && (query = query + ` AND ${index} = '${item}'`);
+            if (index === "password") {
+              index &&
+                (query =
+                  query + ` AND ${index} = crypt('${item}',gen_salt('bf'))`);
+            } else if (index === "fecha_activo") {
+              index &&
+                (query =
+                  query +
+                  ` AND ${index} = '${moment(item).format(
+                    "YYYY-MM-DD HH:mm:ss.SSS"
+                  )}'`);
+            } else {
+              index && (query = query + ` AND ${index} = '${item}'`);
+            }
           } else if (typeof item === "number") {
             index && (query = query + ` AND ${index} = ${item}`);
           } else if (typeof item === "boolean") {
@@ -274,6 +287,13 @@ function EscogerUtil(table, params) {
           }
         }
       });
+    if (!query.includes("WHERE")) {
+      let queryAux = query.split("");
+      queryAux.splice(query.indexOf(" AND"), 0, "WHERE");
+      queryAux.splice(query.indexOf("AND"), 4);
+      queryAux.join("");
+      query = queryAux.join("");
+    }
 
     params.body && (query = query = query + ";");
   }
@@ -303,7 +323,8 @@ function InsertarUtil(table, params) {
         index && (query = query + `crypt('${item}', gen_salt('bf')), `);
       } else if (index === "fecha_activo") {
         index &&
-          (query = query + `'${moment(item).format("YYYY/MM/DD HH:mm:ss")}', `);
+          (query =
+            query + `'${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}', `);
       } else {
         index && (query = query + `'${item}', `);
       }
@@ -316,7 +337,8 @@ function InsertarUtil(table, params) {
     } else {
       if (index === "fecha_activo") {
         index &&
-          (query = query + `'${moment(item).format("YYYY/MM/DD HH:mm:ss")}', `);
+          (query =
+            query + `'${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}', `);
       } else {
         index && (query = query + `'${item}', `);
       }
@@ -341,10 +363,6 @@ function ActualizarUtil(table, params) {
   query &&
     map(params.body, (item, index) => {
       index = ponerComillasACamposConMayuscula(index);
-      if (index === "password") {
-      } else if (index === "fecha_activo") {
-      } else {
-      }
       if (typeof item === "string") {
         if (index === "password") {
           index &&
@@ -353,7 +371,9 @@ function ActualizarUtil(table, params) {
           index &&
             (query =
               query +
-              ` ${index} = '${moment(item).format("YYYY/MM/DD HH:mm:ss")}',`);
+              ` ${index} = '${moment(item).format(
+                "YYYY-MM-DD HH:mm:ss.SSS"
+              )}',`);
         } else {
           index && (query = query + ` ${index} = '${item}',`);
         }
@@ -368,7 +388,9 @@ function ActualizarUtil(table, params) {
           index &&
             (query =
               query +
-              ` ${index} = '${moment(item).format("YYYY/MM/DD HH:mm:ss")}',`);
+              ` ${index} = '${moment(item).format(
+                "YYYY-MM-DD HH:mm:ss.SSS"
+              )}',`);
         } else {
           index && (query = query + ` ${index} = '${item}',`);
         }
@@ -394,10 +416,6 @@ function DeshabilitarUtil(table, params) {
   query &&
     map(params.body, (item, index) => {
       index = ponerComillasACamposConMayuscula(index);
-      if (index === "password") {
-      } else if (index === "fecha_activo") {
-      } else {
-      }
       if (typeof item === "string") {
         if (index === "password") {
           index &&
@@ -406,7 +424,9 @@ function DeshabilitarUtil(table, params) {
           index &&
             (query =
               query +
-              ` ${index} = '${moment(item).format("YYYY/MM/DD HH:mm:ss")}',`);
+              ` ${index} = '${moment(item).format(
+                "YYYY-MM-DD HH:mm:ss.SSS"
+              )}',`);
         } else {
           index && (query = query + ` ${index} = '${item}',`);
         }
@@ -421,7 +441,9 @@ function DeshabilitarUtil(table, params) {
           index &&
             (query =
               query +
-              ` ${index} = '${moment(item).format("YYYY/MM/DD HH:mm:ss")}',`);
+              ` ${index} = '${moment(item).format(
+                "YYYY-MM-DD HH:mm:ss.SSS"
+              )}',`);
         } else {
           index && (query = query + ` ${index} = '${item}',`);
         }
