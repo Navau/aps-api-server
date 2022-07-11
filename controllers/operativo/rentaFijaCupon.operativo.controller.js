@@ -19,7 +19,7 @@ const {
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_oper_renta_fija_cupon";
-const newID = "id_grupo";
+const newID = "id_cupon";
 
 //FUNCION PARA OBTENER TODOS LOS RENTA FIJA CUPON DE SEGURIDAD
 function Listar(req, res) {
