@@ -19,6 +19,7 @@ const {
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_oper_renta_fija_cupon";
+const newID = "id_grupo";
 
 //FUNCION PARA OBTENER TODOS LOS RENTA FIJA CUPON DE SEGURIDAD
 function Listar(req, res) {
@@ -99,6 +100,7 @@ function Insertar(req, res) {
   } else {
     const params = {
       body: body,
+      newID,
     };
     let query = InsertarUtil(nameTable, params);
     pool.query(query, (err, result) => {
