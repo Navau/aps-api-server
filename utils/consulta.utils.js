@@ -326,7 +326,12 @@ function InsertarUtil(table, params) {
       if (typeof item === "string") {
         if (index === "password") {
           index && (query = query + `crypt('${item}', gen_salt('bf')), `);
-        } else if (index === "fecha_activo") {
+        } else if (
+          index === "fecha_activo" ||
+          index === "fecha_emision" ||
+          index === "fecha_vencimiento" ||
+          index === "vencimiento_1er_cupon"
+        ) {
           index &&
             (query =
               query + `'${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}', `);

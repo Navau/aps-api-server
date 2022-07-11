@@ -13,6 +13,7 @@ const connection = new Client(PARAMS_CONNECTION);
 
 connection.connect((err) => {
   if (err) {
+    console.log("ERROR", err);
     throw err;
   } else {
     console.log("La conexión a la base de datos es correcta.");
@@ -20,7 +21,8 @@ connection.connect((err) => {
       console.log("#####################");
       console.log("###### API_REST #####");
       console.log("#####################");
-      console.log(`http://${IP_SERVER_API}:${PORT_SERVER}/api/${API_VERSION}`);
+      console.log(`####VERSION##${API_VERSION}########`);
+      console.log(`http://${IP_SERVER_API}:${PORT_SERVER}/api`);
     });
   }
 });

@@ -48,6 +48,7 @@ const rangoPlazoRoute = require("./parametro/rangoPlazo.parametro.route");
 const sectorEconomicoRoute = require("./parametro/sectorEconomico.parametro.route");
 const tipoInstrumentoRoute = require("./parametro/tipoInstrumento.parametro.route");
 const tipoOperacionRoute = require("./parametro/tipoOperacion.parametro.route");
+const uploadRoute = require("./parametro/upload.parametro.route");
 
 // Rutas de Acceso (Se llama Acceso por la autenticacion)
 const accessRoutes = require("./acceso/acceso.route");
@@ -90,6 +91,7 @@ function routerApi(app) {
 
   router.use("/Acceso", accessRoutes);
   // router.use('/AccesoExterno', )
+  router.use("/Upload", uploadRoute);
   router.use("/Accion", accionRoute);
   router.use("/ActividadEconomica", actividadEconomicaRoute);
   router.use("/ArchivoK", archivoKRoute);
