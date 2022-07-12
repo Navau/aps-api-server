@@ -19,6 +19,7 @@ const {
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_oper_renta_fija_cupon";
+const newID = "id_cupon";
 
 //FUNCION PARA OBTENER TODOS LOS RENTA FIJA CUPON DE SEGURIDAD
 function Listar(req, res) {
@@ -99,6 +100,7 @@ function Insertar(req, res) {
   } else {
     const params = {
       body: body,
+      newID,
     };
     let query = InsertarUtil(nameTable, params);
     pool.query(query, (err, result) => {
@@ -124,7 +126,7 @@ function Actualizar(req, res) {
   if (Object.entries(body).length === 0) {
     respDatosNoRecibidos400(res);
   } else {
-    let idInfo = ValidarIDActualizarUtil(nameTable, body);
+    let idInfo = ValidarIDActualizarUtil(nameTable, body, newID);
     if (!idInfo.idOk) {
       respIDNoRecibido400(res);
     } else {
@@ -157,7 +159,7 @@ function Deshabilitar(req, res) {
   if (Object.entries(body).length === 0) {
     respDatosNoRecibidos400(res);
   } else {
-    let idInfo = ValidarIDActualizarUtil(nameTable, body);
+    let idInfo = ValidarIDActualizarUtil(nameTable, body, newID);
     if (!idInfo.idOk) {
       respIDNoRecibido400(res);
     } else {

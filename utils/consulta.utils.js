@@ -378,7 +378,12 @@ function ActualizarUtil(table, params) {
         if (index === "password") {
           index &&
             (query = query + ` ${index} = crypt('${item}',gen_salt('bf')),`);
-        } else if (index === "fecha_activo") {
+        } else if (
+          index === "fecha_activo" ||
+          index === "fecha_emision" ||
+          index === "fecha_vencimiento" ||
+          index === "vencimiento_1er_cupon"
+        ) {
           index &&
             (query =
               query +
