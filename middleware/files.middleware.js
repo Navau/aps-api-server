@@ -2,7 +2,7 @@ const multer = require("multer");
 const path = require("path");
 const { map } = require("lodash");
 const fs = require("mz/fs");
-const pool = require("../../database");
+const pool = require("../database");
 
 const {
   ListarUtil,
@@ -177,6 +177,8 @@ exports.validarArchivo = (req, res, next) => {
               "APS_param_clasificador_comun",
               params
             );
+
+            console.log(clasificadores);
 
             let headers = {
               bolsa: null, //Char(3)
