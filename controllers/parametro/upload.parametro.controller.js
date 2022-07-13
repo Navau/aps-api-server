@@ -34,7 +34,7 @@ function CargarArchivo(req, res) {
   res.status(500).send({
     resultado: 0,
     datos: null,
-    mensaje: "Error",
+    mensaje: "Error XD",
   });
 }
 

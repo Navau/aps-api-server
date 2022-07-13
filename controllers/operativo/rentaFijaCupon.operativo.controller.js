@@ -126,7 +126,7 @@ function Actualizar(req, res) {
   if (Object.entries(body).length === 0) {
     respDatosNoRecibidos400(res);
   } else {
-    let idInfo = ValidarIDActualizarUtil(nameTable, body);
+    let idInfo = ValidarIDActualizarUtil(nameTable, body, newID);
     if (!idInfo.idOk) {
       respIDNoRecibido400(res);
     } else {
@@ -159,7 +159,7 @@ function Deshabilitar(req, res) {
   if (Object.entries(body).length === 0) {
     respDatosNoRecibidos400(res);
   } else {
-    let idInfo = ValidarIDActualizarUtil(nameTable, body);
+    let idInfo = ValidarIDActualizarUtil(nameTable, body, newID);
     if (!idInfo.idOk) {
       respIDNoRecibido400(res);
     } else {

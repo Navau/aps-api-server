@@ -3,9 +3,42 @@ function respErrorServidor500(res, err, msg) {
   res.status(500).send({
     resultado: 0,
     datos: null,
-    mensaje: msg ? msg : "Error del servidor.",
+    mensaje: msg ? msg + errMessage : "Error del servidor. ERROR:" + errMessage,
     err,
   });
+}
+
+function respErrorMulter500(res, err, msg) {
+  console.log(err);
+  let errMessage = err?.message ? err?.message : "";
+  res
+    .status(500)
+    .send({
+      resultado: 0,
+      datos: null,
+      mensaje: msg
+        ? msg + errMessage
+        : "Se ha producido un error de Multer al cargar el archivo. ERROR:" +
+          errMessage,
+      err,
+    })
+    .end();
+}
+
+function respErrorExtensionError403(res, err, msg) {
+  console.log(err);
+  let errMessage = err?.message ? err?.message : "";
+  res
+    .status(413)
+    .send({
+      resultado: 0,
+      datos: null,
+      mensaje: msg
+        ? msg + errMessage
+        : "Error desconocido al cargar el archivo. ERROR:" + errMessage,
+      err,
+    })
+    .end();
 }
 
 function respResultadoVacio404(res, msg) {
@@ -52,6 +85,8 @@ function respIDNoRecibido400(res, msg) {
 
 module.exports = {
   respErrorServidor500,
+  respErrorMulter500,
+  respErrorExtensionError403,
   respDatosNoRecibidos400,
   respResultadoCorrecto200,
   respResultadoVacio404,

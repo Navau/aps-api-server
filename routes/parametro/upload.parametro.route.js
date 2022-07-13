@@ -7,10 +7,12 @@ const api = express.Router();
 
 api.post(
   "/CargarArchivo",
-  [md_auth.AsegurarAutenticacionConToken],
-  (req, res) => {
-    md_files.VerificarArchivo(controller.CargarArchivo(req, res));
-  }
+  [
+    md_auth.AsegurarAutenticacionConToken,
+    md_files.subirArchivo,
+    md_files.validarArchivo,
+  ],
+  controller.CargarArchivo
 );
 api.get("/Listar", [md_auth.AsegurarAutenticacionConToken], controller.Listar);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
