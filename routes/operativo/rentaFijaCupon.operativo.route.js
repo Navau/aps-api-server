@@ -26,7 +26,7 @@ api.post(
   [md_auth.AsegurarAutenticacionConToken],
   controller.Deshabilitar
 );
-api.delete(
+api.post(
   "/Eliminar",
   [md_auth.AsegurarAutenticacionConToken],
   controller.Eliminar

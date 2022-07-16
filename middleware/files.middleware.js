@@ -354,6 +354,7 @@ exports.validarArchivo = async (req, res, next) => {
       }
       filesReaded.push(dataSplit);
     });
+
     if (errors.length >= 1) {
       respArchivoErroneo415(res, errors);
     } else {
