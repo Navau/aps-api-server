@@ -10,7 +10,7 @@ exports.createAccessToken = function (user) {
   const payload = {
     id_usuario: user.id_usuario,
     nbf: moment().unix(),
-    exp: moment().add(48, "hours").unix(),
+    exp: moment().add(168, "hours").unix(),
     iat: moment().unix(),
   };
 
@@ -26,7 +26,7 @@ exports.createAccessTokenWithRol = function (user) {
     id_usuario: user.id_usuario,
     id_rol: user.id_rol,
     nbf: moment().unix(),
-    exp: moment().add(48, "hours").unix(),
+    exp: moment().add(168, "hours").unix(),
     iat: moment().unix(),
   };
 

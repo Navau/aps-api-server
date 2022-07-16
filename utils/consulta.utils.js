@@ -120,6 +120,52 @@ function FormatearObtenerMenuAngUtil(data) {
   return resultFinal;
 }
 
+function CargarArchivoABaseDeDatosUtil(table, params) {
+  let query = "";
+  query = `COPY public."${table}"`;
+  query && (query = query + " (");
+  map(params.headers, (item, index) => {
+    index = ponerComillasACamposConMayuscula(index);
+    index && (query = query + `${index}, `);
+  });
+  query && (query = query.substring(0, query.length - 2));
+  query && (query = query + ") ");
+  query && (query = query + `FROM '${params.filePath}' DELIMITER ',' CSV;`);
+
+  console.log(query);
+  return query;
+}
+
+function ValorMaximoDeCampoUtil(table, params) {
+  let query = "";
+  query = `SELECT max(${params.fieldMax}) FROM public."${table}"`;
+  if (params?.where) {
+    map(params.where, (item, index) => {
+      if (item?.like === true) {
+        query = query + ` AND ${item.key} like '${item.value}%'`;
+      } else {
+        if (typeof item.value === "string") {
+          query = query + ` AND ${item.key} = '${item.value}'`;
+        } else if (typeof item.value === "number") {
+          query = query + ` AND ${item.key} = ${item.value}`;
+        } else if (typeof item.value === "boolean") {
+          query = query + ` AND ${item.key} = ${item.value}`;
+        }
+      }
+    });
+  }
+  if (!query.includes("WHERE")) {
+    let queryAux = query.split("");
+    queryAux.splice(query.indexOf(" AND"), 0, " WHERE");
+    queryAux.splice(query.indexOf("AND"), 4);
+    queryAux.join("");
+    query = queryAux.join("");
+  }
+  query && (query = query + ";");
+  console.log(query);
+  return query;
+}
+
 function ListarUtil(table, params) {
   let query = "";
   if (params?.clasificador) {
@@ -325,34 +371,42 @@ function InsertarUtil(table, params) {
 
   map(params.body, (item, index) => {
     if (idAux.idKey !== index) {
-      if (typeof item === "string") {
-        if (index === "password") {
-          index && (query = query + `crypt('${item}', gen_salt('bf')), `);
-        } else if (
-          index === "fecha_activo" ||
-          index === "fecha_emision" ||
-          index === "fecha_vencimiento" ||
-          index === "vencimiento_1er_cupon"
-        ) {
-          index &&
-            (query =
-              query + `'${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}', `);
-        } else {
-          index && (query = query + `'${item}', `);
-        }
-      } else if (typeof item === "number") {
-        index && (query = query + `${item}, `);
-      } else if (typeof item === "boolean") {
-        index && (query = query + `${item}, `);
-      } else if (typeof item === "object" && item === null) {
-        index && (query = query + `${item}, `);
+      if (item instanceof Date) {
+        index &&
+          (query =
+            query + `'${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}', `);
       } else {
-        if (index === "fecha_activo") {
-          index &&
-            (query =
-              query + `'${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}', `);
+        if (typeof item === "string") {
+          if (index === "password") {
+            index && (query = query + `crypt('${item}', gen_salt('bf')), `);
+          } else if (
+            index === "fecha_activo" ||
+            index === "fecha_emision" ||
+            index === "fecha_vencimiento" ||
+            index === "vencimiento_1er_cupon"
+          ) {
+            index &&
+              (query =
+                query +
+                `'${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}', `);
+          } else {
+            index && (query = query + `'${item}', `);
+          }
+        } else if (typeof item === "number") {
+          index && (query = query + `${item}, `);
+        } else if (typeof item === "boolean") {
+          index && (query = query + `${item}, `);
+        } else if (typeof item === "object" && item === null) {
+          index && (query = query + `${item}, `);
         } else {
-          index && (query = query + `'${item}', `);
+          if (index === "fecha_activo") {
+            index &&
+              (query =
+                query +
+                `'${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}', `);
+          } else {
+            index && (query = query + `'${item}', `);
+          }
         }
       }
     }
@@ -531,6 +585,8 @@ module.exports = {
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
   ObtenerRolUtil,
+  ValorMaximoDeCampoUtil,
   ObtenerMenuAngUtil,
   FormatearObtenerMenuAngUtil,
+  CargarArchivoABaseDeDatosUtil,
 };

@@ -1,8 +1,10 @@
 const multer = require("multer");
 const path = require("path");
 const { map } = require("lodash");
-const fs = require("mz/fs");
+const fs = require("fs");
 const pool = require("../database");
+
+const { formatoArchivo } = require("../utils/formatoCamposArchivos.utils");
 
 const {
   ListarUtil,
@@ -18,31 +20,49 @@ const {
   respErrorServidor500,
   respErrorMulter500,
   respDatosNoRecibidos400,
+  respArchivoErroneo415,
   respResultadoCorrecto200,
   respResultadoVacio404,
   respIDNoRecibido400,
 } = require("../utils/respuesta.utils");
 
 function formatearDatosEInsertarCabeceras(headers, dataSplit) {
-  let countColumns = Object.keys(headers).length;
   let arrayDataObject = [];
+  let errors = [];
 
-  for (let index2 = 0; index2 < countColumns; index2++) {
-    let rowSplit = dataSplit[index2].split(",");
+  map(dataSplit, (item, index) => {
+    let rowSplit = item.split(",");
+    if (item.length === 0) {
+      return;
+    }
+    if (rowSplit.length > Object.keys(headers).length) {
+      errors.push({
+        msg: `El archivo contiene ${
+          rowSplit.length
+        } columnas y el formato esperado es que tenga ${
+          Object.keys(headers).length
+        } columnas`,
+      });
+      return;
+    }
     let resultObject = {};
     let counterAux = 0;
-    map(headers, (item3, index3) => {
+    map(headers, (item2, index2) => {
       resultObject = {
         ...resultObject,
-        [index3]: rowSplit[counterAux].trim().replace(/['"]+/g, ""), //QUITAR ESPACIOS Y QUITAR COMILLAS DOBLES
+        [index2]: rowSplit[counterAux]?.trim().replace(/['"]+/g, ""), //QUITAR ESPACIOS Y QUITAR COMILLAS DOBLES
       };
       counterAux++;
     });
     arrayDataObject.push(resultObject);
-    // console.log("resultObject", resultObject);
-    // console.log("ROWSPLIT", rowSplit);
+  });
+
+  if (errors.length >= 1) {
+    return {
+      err: true,
+      errors,
+    };
   }
-  // console.log("arrayDataObject", arrayDataObject);
   return arrayDataObject;
 }
 
@@ -120,27 +140,71 @@ function obtenerValidaciones(typeFile) {
   return result;
 }
 
-function clasificadorComun(table, params) {
+async function clasificadorComun(table, params) {
   let query = ListarUtil(table, params);
-  pool.query(query, (err, result) => {
-    if (err) {
-      return {
-        err,
-      };
-    } else {
-      return {
-        result,
-      };
-    }
-  });
+  let resultFinal = null;
+  await pool
+    .query(query)
+    .then((result) => {
+      resultFinal = { resultFinal: result.rows };
+    })
+    .catch((err) => {
+      resultFinal = { err };
+    })
+    .finally(() => {
+      return resultFinal;
+    });
+  return resultFinal;
 }
 
-exports.validarArchivo = (req, res, next) => {
+async function tipoInstrumento(table, params) {
+  let query = ListarUtil(table, params);
+  let resultFinal = null;
+  await pool
+    .query(query)
+    .then((result) => {
+      resultFinal = { resultFinal: result.rows };
+    })
+    .catch((err) => {
+      resultFinal = { err };
+    })
+    .finally(() => {
+      return resultFinal;
+    });
+  return resultFinal;
+}
+
+async function tipoMarcacion(params) {
+  let resultFinal = null;
+  if (
+    params.montoNegociado !== 0 &&
+    params.montoNegociado >= params.montoMinimo
+  ) {
+    resultFinal = "AC, NA";
+  }
+  if (
+    params.montoNegociado !== 0 &&
+    params.montoNegociado < params.montoMinimo
+  ) {
+    resultFinal = "NM";
+  }
+
+  return resultFinal;
+}
+
+exports.validarArchivo = async (req, res, next) => {
   try {
     let filesUploaded = req?.files; //ARCHIVOS SUBIDOS Y TEMPORALES
     let filesReaded = []; //ARCHIVOS LEIDOS Y EXISTENTES
     let errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
-    map(filesUploaded, (item, index) => {
+    let clasificador = await clasificadorComun("APS_param_clasificador_comun", {
+      idKey: "id_clasificador_comun_grupo",
+      idValue: 1,
+    });
+    let siglaClasificador = clasificador.resultFinal[0].sigla;
+    let instrumento = await tipoInstrumento("APS_param_tipo_instrumento");
+
+    map(filesUploaded, async (item, index) => {
       const filePath = `./uploads/tmp/${item.originalname}`;
       let data = fs.readFileSync(filePath, "utf8");
       let dataSplit = null;
@@ -169,82 +233,96 @@ exports.validarArchivo = (req, res, next) => {
         } else {
           if (item.originalname.includes("K.")) {
             console.log("ARCHIVO CORRECTO : K", item.originalname);
-            let params = {
-              idKey: "id_clasificador_comun_grupo",
-              idValue: 1,
-            };
-            let clasificadores = clasificadorComun(
-              "APS_param_clasificador_comun",
-              params
-            );
-
-            console.log(clasificadores);
-
-            let headers = {
-              bolsa: null, //Char(3)
-              fecha: null, //Date fecha operacion "aaaa-mm-dd"
-              codigo_valoracion: null, //Char(20)
-              tipo_instrumento: null, //Char(5)
-              clave_instrumento: null, //Char(30)
-              tasa: null, //Decimal(8,4) tasa promedio
-              monto: null, //Decimal(16,2) monto negociado
-              monto_minimo: null, //Decimal(16,2) monto mínimo
-              tipo_marcacion: null, //Char(2) tipo marcación char 2 ** De donde saca los valores NM, NA, AC en donde se lo pone??
-            };
+            let headers = formatoArchivo("k");
             let arrayDataObject = formatearDatosEInsertarCabeceras(
               headers,
               dataSplit
             );
-            let arrayValidateObject = obtenerValidaciones("k");
-            map(arrayDataObject, (item2, index2) => {
-              map(arrayValidateObject, (item3, index3) => {
-                let value = item2[item3.columnName];
-                let columnName = item3.columnName;
-                let pattern = item3.pattern;
-                let required = item3.required;
-                let funct = item3.function;
+            if (arrayDataObject?.err === true) {
+              map(arrayDataObject.errors, (itemError, indexError) => {
+                errors.push({
+                  file: item.originalname,
+                  type: "FILE CONTENT ERROR",
+                  message: itemError.msg,
+                });
+              });
+            } else {
+              let arrayValidateObject = obtenerValidaciones("k");
+              map(arrayDataObject, async (item2, index2) => {
+                map(arrayValidateObject, async (item3, index3) => {
+                  let value = item2[item3.columnName];
+                  let columnName = item3.columnName;
+                  let pattern = item3.pattern;
+                  let required = item3.required;
+                  let funct = item3.function;
 
-                if (required === true) {
-                  if (!item2[item3.columnName]) {
-                    errors.push({
-                      file: item.originalname,
-                      type: "VALUE NULL OR EMPTY",
-                      message: `El valor esta vacio o existe un error en el contenido del archivo, en la columna de "${columnName}" que contiene el valor de: ${value}`,
-                    });
-                  } else {
-                    let match = value.match(pattern);
-                    // if (columnName === "tasa") {
-                    //   console.log({
-                    //     columnName: columnName,
-                    //     value: value,
-                    //     match,
-                    //   });
-                    // }
-                    if (match === null) {
+                  if (required === true) {
+                    // console.log(item2);
+                    if (!item2[item3.columnName]) {
                       errors.push({
                         file: item.originalname,
-                        type: "VALUE INCORRECT",
-                        message: `El contenido del archivo no cumple con el formato correcto, en la columna de "${columnName}" que contiene el valor de: ${value} en la fila ${index2}`,
+                        type: "VALUE NULL OR EMPTY",
+                        message: `El valor esta vacio o existe un error en el contenido del archivo, en la columna de '${columnName}' que contiene el valor de: '${value}'`,
                       });
-                    }
-                    if (funct === "clasificadorcomun") {
-                      let clasificador = clasificadorComun("");
-                    } else if (funct === "tipoinstrumento") {
-                    } else if (funct === "marcacion") {
+                    } else {
+                      let match = value.match(pattern);
+                      // if (columnName === "tasa") {
+                      //   console.log({
+                      //     columnName: columnName,
+                      //     value: value,
+                      //     match,
+                      //   });
+                      // }
+                      if (match === null) {
+                        errors.push({
+                          file: item.originalname,
+                          type: "VALUE INCORRECT",
+                          message: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}'`,
+                        });
+                      }
+                      if (funct === "clasificadorcomun") {
+                        if (value !== siglaClasificador) {
+                          errors.push({
+                            file: item.originalname,
+                            type: "VALUE INCORRECT",
+                            message: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}', el cual tiene que coincidir con la sigla '${siglaClasificador}' de Clasificador Común para la Bolsa de valores`,
+                          });
+                        }
+                      } else if (funct === "tipoinstrumento") {
+                        let errInstrumento = true;
+                        map(instrumento.resultFinal, (item4, index4) => {
+                          if (value === item4.sigla) {
+                            errInstrumento = false;
+                          }
+                        });
+                        if (errInstrumento === true) {
+                          errors.push({
+                            file: item.originalname,
+                            type: "VALUE INCORRECT",
+                            message: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}', el cual tiene que coincidir con alguna sigla de Tipo Instrumento para la Bolsa de valores`,
+                          });
+                        }
+                      } else if (funct === "marcacion") {
+                        let marcacion = await tipoMarcacion({
+                          montoNegociado: item2.monto,
+                          montoMinimo: item2.monto_minimo,
+                        });
+                        if (!value.toString().includes(marcacion)) {
+                          errors.push({
+                            file: item.originalname,
+                            type: "VALUE INCORRECT",
+                            message: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}', el cual tiene que coincidir con '${marcacion}' de Tipo Marcación para la Bolsa de valores`,
+                          });
+                        }
+                      }
                     }
                   }
-                }
+                });
               });
-            });
-
-            // console.log(
-            //   "arrayDataObject: " + item.originalname,
-            //   arrayDataObject
-            // );
-            // console.log(
-            //   "arrayValidateObject: " + item.originalname,
-            //   arrayValidateObject
-            // );
+            }
+          } else if (item.originalname.includes("L.")) {
+          } else if (item.originalname.includes("N.")) {
+          } else if (item.originalname.includes("P.")) {
           } else {
             errors.push({
               file: item.originalname,
@@ -255,11 +333,17 @@ exports.validarArchivo = (req, res, next) => {
           }
         }
       }
-
       filesReaded.push(dataSplit);
     });
-    console.log("ERRORS", errors);
+    // console.log("ERRORS", errors);
     // console.log("FILESREADED FINAL", filesReaded[0]);
+    if (errors.length >= 1) {
+      respArchivoErroneo415(res, errors);
+    } else {
+      req.errors = errors;
+      req.filesReaded = filesReaded;
+      next();
+    }
   } catch (err) {
     respErrorServidor500(res, err, "Ocurrió un error inesperado.");
   }
@@ -267,7 +351,7 @@ exports.validarArchivo = (req, res, next) => {
 
 exports.subirArchivo = (req, res, next) => {
   const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
+    destination: (req, file, cb) => {
       cb(null, "./uploads/tmp");
     },
     filename: (req, file, cb) => {

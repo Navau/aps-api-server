@@ -1,5 +1,6 @@
 function respErrorServidor500(res, err, msg) {
   console.log(err);
+  let errMessage = err?.message ? err?.message : "";
   res.status(500).send({
     resultado: 0,
     datos: null,
@@ -75,6 +76,17 @@ function respDatosNoRecibidos400(res, msg) {
   });
 }
 
+function respArchivoErroneo415(res, err, msg) {
+  res.status(415).send({
+    resultado: 0,
+    datos: null,
+    mensaje: msg
+      ? msg
+      : "El tipo de archivo que se ha recibido no cumple con el formato esperado.",
+    errores: err,
+  });
+}
+
 function respIDNoRecibido400(res, msg) {
   res.status(400).send({
     resultado: 0,
@@ -88,6 +100,7 @@ module.exports = {
   respErrorMulter500,
   respErrorExtensionError403,
   respDatosNoRecibidos400,
+  respArchivoErroneo415,
   respResultadoCorrecto200,
   respResultadoVacio404,
   respIDNoRecibido400,
