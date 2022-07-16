@@ -48,7 +48,7 @@ function respResultadoVacio404(res, msg) {
     datos: null,
     mensaje: msg
       ? msg
-      : "No se logró realizar correctamente la petición, debido a que no se pudo encontrar u obtener la información.",
+      : "No se logró realizar correctamente la petición, debido a que la información no existe.",
   });
 }
 

@@ -32,7 +32,7 @@ async function CargarArchivo(req, res) {
   let idCargaArchivos = null;
   let errors = [];
   let filesReaded = req.filesReaded;
-  let result = [];
+  let resultFinal = [];
   map(req.files, async (item, index) => {
     const params = {
       fieldMax,
@@ -128,21 +128,22 @@ async function CargarArchivo(req, res) {
         await pool
           .query(queryInsert)
           .then(async (resultInsert) => {
-            result.push({
+            resultFinal.push({
               file: item.originalname,
-              message: `El archivo fue insertado correctamente a la tabla ${nameTable}`,
-              result: resultInsert,
+              message: `El archivo fue insertado correctamente a la tabla '${nameTable}'`,
+              result: resultInsert.rows,
             });
             await pool
               .query(queryInsertFile)
               .then((resultInsertFile) => {
-                result.push({
+                resultFinal.push({
                   file: item.originalname,
-                  message: `El archivo fue insertado correctamente a la tabla ${tableFile}`,
-                  result: resultInsertFile,
+                  message: `El archivo fue insertado correctamente a la tabla '${tableFile}'`,
+                  result: resultInsertFile.rows,
                 });
               })
               .catch((err) => {
+                console.log(err);
                 errors.push({
                   file: item.originalname,
                   type: "QUERY SQL ERROR",
@@ -152,6 +153,7 @@ async function CargarArchivo(req, res) {
               });
           })
           .catch((err) => {
+            console.log(err);
             errors.push({
               file: item.originalname,
               type: "QUERY SQL ERROR",
@@ -161,6 +163,7 @@ async function CargarArchivo(req, res) {
           });
       })
       .catch((err) => {
+        console.log(err);
         errors.push({
           file: item.originalname,
           type: "QUERY SQL ERROR",
@@ -173,7 +176,7 @@ async function CargarArchivo(req, res) {
           respArchivoErroneo415(res, errors);
         } else {
           respResultadoCorrecto200(res, {
-            rows: result,
+            rows: resultFinal,
           });
         }
       });

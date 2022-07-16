@@ -26,5 +26,10 @@ api.post(
   [md_auth.AsegurarAutenticacionConToken],
   controller.Deshabilitar
 );
+api.delete(
+  "/Eliminar",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.Eliminar
+);
 
 module.exports = api;

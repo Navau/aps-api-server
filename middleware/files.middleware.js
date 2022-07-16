@@ -3,6 +3,7 @@ const path = require("path");
 const { map } = require("lodash");
 const fs = require("fs");
 const pool = require("../database");
+const moment = require("moment");
 
 const { formatoArchivo } = require("../utils/formatoCamposArchivos.utils");
 
@@ -208,135 +209,151 @@ exports.validarArchivo = async (req, res, next) => {
       const filePath = `./uploads/tmp/${item.originalname}`;
       let data = fs.readFileSync(filePath, "utf8");
       let dataSplit = null;
-
-      if (data.length === 0) {
+      let fileDate = "";
+      map(item.originalname, (item2, index2) => {
+        if (item2.match(/^[0-9]$/) !== null) {
+          fileDate += item2;
+          if (index2 % 2 === 0) {
+            fileDate += "-";
+          }
+        }
+      });
+      fileDate = fileDate.substring(0, fileDate.length - 1);
+      currentDate = moment().format("YY-MM-DD");
+      if (fileDate !== currentDate) {
         errors.push({
           file: item.originalname,
-          type: "DATA EMPTY",
-          message: "El contenido del archivo esta vacío.",
+          type: "ERROR NAME",
+          message: "El nombre del archivo no coincide con la fecha actual.",
         });
       } else {
-        if (data.includes("\r\n")) {
-          dataSplit = data.split("\r\n");
-        } else if (data.includes("\r\n")) {
-          dataSplit = data.split("\n");
-        } else {
-          dataSplit = null;
-        }
-        if (dataSplit === null) {
+        if (data.length === 0) {
           errors.push({
             file: item.originalname,
-            type: "DATA SPLIT",
-            message:
-              "Ocurrió un error debido al formato del contenido del archivo.",
+            type: "DATA EMPTY",
+            message: "El contenido del archivo esta vacío.",
           });
         } else {
-          if (item.originalname.includes("K.")) {
-            console.log("ARCHIVO CORRECTO : K", item.originalname);
-            let headers = formatoArchivo("k");
-            let arrayDataObject = formatearDatosEInsertarCabeceras(
-              headers,
-              dataSplit
-            );
-            if (arrayDataObject?.err === true) {
-              map(arrayDataObject.errors, (itemError, indexError) => {
-                errors.push({
-                  file: item.originalname,
-                  type: "FILE CONTENT ERROR",
-                  message: itemError.msg,
+          if (data.includes("\r\n")) {
+            dataSplit = data.split("\r\n");
+          } else if (data.includes("\r\n")) {
+            dataSplit = data.split("\n");
+          } else {
+            dataSplit = null;
+          }
+          if (dataSplit === null) {
+            errors.push({
+              file: item.originalname,
+              type: "DATA SPLIT",
+              message:
+                "Ocurrió un error debido al formato del contenido del archivo.",
+            });
+          } else {
+            if (item.originalname.includes("K.")) {
+              console.log("ARCHIVO CORRECTO : K", item.originalname);
+              let headers = formatoArchivo("k");
+              let arrayDataObject = formatearDatosEInsertarCabeceras(
+                headers,
+                dataSplit
+              );
+              if (arrayDataObject?.err === true) {
+                map(arrayDataObject.errors, (itemError, indexError) => {
+                  errors.push({
+                    file: item.originalname,
+                    type: "FILE CONTENT ERROR",
+                    message: itemError.msg,
+                  });
                 });
-              });
-            } else {
-              let arrayValidateObject = obtenerValidaciones("k");
-              map(arrayDataObject, async (item2, index2) => {
-                map(arrayValidateObject, async (item3, index3) => {
-                  let value = item2[item3.columnName];
-                  let columnName = item3.columnName;
-                  let pattern = item3.pattern;
-                  let required = item3.required;
-                  let funct = item3.function;
+              } else {
+                let arrayValidateObject = obtenerValidaciones("k");
+                map(arrayDataObject, async (item2, index2) => {
+                  map(arrayValidateObject, async (item3, index3) => {
+                    let value = item2[item3.columnName];
+                    let columnName = item3.columnName;
+                    let pattern = item3.pattern;
+                    let required = item3.required;
+                    let funct = item3.function;
 
-                  if (required === true) {
-                    // console.log(item2);
-                    if (!item2[item3.columnName]) {
-                      errors.push({
-                        file: item.originalname,
-                        type: "VALUE NULL OR EMPTY",
-                        message: `El valor esta vacio o existe un error en el contenido del archivo, en la columna de '${columnName}' que contiene el valor de: '${value}'`,
-                      });
-                    } else {
-                      let match = value.match(pattern);
-                      // if (columnName === "tasa") {
-                      //   console.log({
-                      //     columnName: columnName,
-                      //     value: value,
-                      //     match,
-                      //   });
-                      // }
-                      if (match === null) {
+                    if (required === true) {
+                      // console.log(item2);
+                      if (!item2[item3.columnName]) {
                         errors.push({
                           file: item.originalname,
-                          type: "VALUE INCORRECT",
-                          message: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}'`,
+                          type: "VALUE NULL OR EMPTY",
+                          message: `El valor esta vacio o existe un error en el contenido del archivo, en la columna de '${columnName}' que contiene el valor de: '${value}'`,
                         });
-                      }
-                      if (funct === "clasificadorcomun") {
-                        if (value !== siglaClasificador) {
+                      } else {
+                        let match = value.match(pattern);
+                        // if (columnName === "tasa") {
+                        //   console.log({
+                        //     columnName: columnName,
+                        //     value: value,
+                        //     match,
+                        //   });
+                        // }
+                        if (match === null) {
                           errors.push({
                             file: item.originalname,
                             type: "VALUE INCORRECT",
-                            message: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}', el cual tiene que coincidir con la sigla '${siglaClasificador}' de Clasificador Común para la Bolsa de valores`,
+                            message: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}'`,
                           });
                         }
-                      } else if (funct === "tipoinstrumento") {
-                        let errInstrumento = true;
-                        map(instrumento.resultFinal, (item4, index4) => {
-                          if (value === item4.sigla) {
-                            errInstrumento = false;
+                        if (funct === "clasificadorcomun") {
+                          if (value !== siglaClasificador) {
+                            errors.push({
+                              file: item.originalname,
+                              type: "VALUE INCORRECT",
+                              message: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}', el cual tiene que coincidir con la sigla '${siglaClasificador}' de Clasificador Común para la Bolsa de valores`,
+                            });
                           }
-                        });
-                        if (errInstrumento === true) {
-                          errors.push({
-                            file: item.originalname,
-                            type: "VALUE INCORRECT",
-                            message: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}', el cual tiene que coincidir con alguna sigla de Tipo Instrumento para la Bolsa de valores`,
+                        } else if (funct === "tipoinstrumento") {
+                          let errInstrumento = true;
+                          map(instrumento.resultFinal, (item4, index4) => {
+                            if (value === item4.sigla) {
+                              errInstrumento = false;
+                            }
                           });
-                        }
-                      } else if (funct === "marcacion") {
-                        let marcacion = await tipoMarcacion({
-                          montoNegociado: item2.monto,
-                          montoMinimo: item2.monto_minimo,
-                        });
-                        if (!value.toString().includes(marcacion)) {
-                          errors.push({
-                            file: item.originalname,
-                            type: "VALUE INCORRECT",
-                            message: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}', el cual tiene que coincidir con '${marcacion}' de Tipo Marcación para la Bolsa de valores`,
+                          if (errInstrumento === true) {
+                            errors.push({
+                              file: item.originalname,
+                              type: "VALUE INCORRECT",
+                              message: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}', el cual tiene que coincidir con alguna sigla de Tipo Instrumento para la Bolsa de valores`,
+                            });
+                          }
+                        } else if (funct === "marcacion") {
+                          let marcacion = await tipoMarcacion({
+                            montoNegociado: item2.monto,
+                            montoMinimo: item2.monto_minimo,
                           });
+                          if (!value.toString().includes(marcacion)) {
+                            errors.push({
+                              file: item.originalname,
+                              type: "VALUE INCORRECT",
+                              message: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}', el cual tiene que coincidir con '${marcacion}' de Tipo Marcación para la Bolsa de valores`,
+                            });
+                          }
                         }
                       }
                     }
-                  }
+                  });
                 });
+              }
+            } else if (item.originalname.includes("L.")) {
+            } else if (item.originalname.includes("N.")) {
+            } else if (item.originalname.includes("P.")) {
+            } else {
+              errors.push({
+                file: item.originalname,
+                type: "NAME FILE",
+                message:
+                  "El nombre del archivo no cumple con el formato estandar (no se conoce de que tipo es: 'K', 'L', 'N', 'P').",
               });
             }
-          } else if (item.originalname.includes("L.")) {
-          } else if (item.originalname.includes("N.")) {
-          } else if (item.originalname.includes("P.")) {
-          } else {
-            errors.push({
-              file: item.originalname,
-              type: "NAME FILE",
-              message:
-                "El nombre del archivo no cumple con el formato estandar (no se conoce de que tipo es: 'K', 'L', 'N', 'P').",
-            });
           }
         }
       }
       filesReaded.push(dataSplit);
     });
-    // console.log("ERRORS", errors);
-    // console.log("FILESREADED FINAL", filesReaded[0]);
     if (errors.length >= 1) {
       respArchivoErroneo415(res, errors);
     } else {

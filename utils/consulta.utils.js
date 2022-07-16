@@ -532,6 +532,34 @@ function DeshabilitarUtil(table, params) {
   return query;
 }
 
+function EliminarUtil(table, params) {
+  let query = "";
+  params?.where && (query = query + `DELETE FROM public."${table}"`);
+
+  if (params?.where) {
+    map(params.where, (item, index) => {
+      if (typeof item === "string") {
+        query = query + ` AND ${index} = '${item}'`;
+      } else if (typeof item === "number") {
+        query = query + ` AND ${index} = ${item}`;
+      } else if (typeof item === "boolean") {
+        query = query + ` AND ${index} = ${item}`;
+      }
+    });
+  }
+  if (!query.includes("WHERE")) {
+    let queryAux = query.split("");
+    queryAux.splice(query.indexOf(" AND"), 0, " WHERE");
+    queryAux.splice(query.indexOf("AND"), 4);
+    queryAux.join("");
+    query = queryAux.join("");
+  }
+  query && (query = query + ";");
+
+  console.log(query);
+  return query;
+}
+
 function ValidarIDActualizarUtil(nameTable, body, newID) {
   let indexId = nameTable.indexOf("_", 5);
   let idKey = newID
@@ -583,6 +611,7 @@ module.exports = {
   InsertarUtil,
   ActualizarUtil,
   DeshabilitarUtil,
+  EliminarUtil,
   ValidarIDActualizarUtil,
   ObtenerRolUtil,
   ValorMaximoDeCampoUtil,

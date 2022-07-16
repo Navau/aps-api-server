@@ -8,6 +8,7 @@ const {
   ActualizarUtil,
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
+  EliminarUtil,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -184,6 +185,31 @@ function Deshabilitar(req, res) {
   }
 }
 
+//FUNCION PARA ELIMINAR UN RENTA FIJA CUPON
+function Eliminar(req, res) {
+  const body = req.body;
+
+  if (Object.entries(body).length === 0) {
+    respDatosNoRecibidos400(res);
+  } else {
+    const params = {
+      where: body,
+    };
+    query = EliminarUtil(nameTable, params);
+    pool.query(query, (err, result) => {
+      if (err) {
+        respErrorServidor500(res, err);
+      } else {
+        if (!result.rowCount || result.rowCount < 1) {
+          respResultadoVacio404(res);
+        } else {
+          respResultadoCorrecto200(res, result);
+        }
+      }
+    });
+  }
+}
+
 module.exports = {
   Listar,
   Buscar,
@@ -191,4 +217,5 @@ module.exports = {
   Insertar,
   Actualizar,
   Deshabilitar,
+  Eliminar,
 };
