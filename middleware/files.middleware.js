@@ -15,6 +15,11 @@ const {
   ActualizarUtil,
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
+  ValorMaximoDeCampoUtil,
+  CargarArchivoABaseDeDatosUtil,
+  EliminarUtil,
+  ResetearIDUtil,
+  InsertarVariosUtil,
 } = require("../utils/consulta.utils");
 
 const {
@@ -25,7 +30,10 @@ const {
   respResultadoCorrecto200,
   respResultadoVacio404,
   respIDNoRecibido400,
+  respResultadoCorrectoObjeto200,
 } = require("../utils/respuesta.utils");
+
+const nameTable = "APS_aud_carga_archivos_bolsa";
 
 function formatearDatosEInsertarCabeceras(headers, dataSplit) {
   let arrayDataObject = [];
@@ -73,7 +81,7 @@ function obtenerValidaciones(typeFile) {
     result = [
       {
         columnName: "bolsa",
-        pattern: /^[A-Za-z]{0,3}$/,
+        pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: false,
         required: true,
         function: "clasificadorcomun",
@@ -95,7 +103,7 @@ function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "tipo_instrumento",
-        pattern: /^[A-Za-z0-9]{0,5}$/,
+        pattern: /^[A-Za-z0-9]{0,3}$/,
         positveNegative: true,
         required: true,
         function: "tipoinstrumento",
@@ -109,28 +117,28 @@ function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "tasa",
-        pattern: /^(\d{1,8})(\.\d{1,4}){0,1}$/,
+        pattern: /^(\d{1,8})(\.\d{4,4}){0,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "monto",
-        pattern: /^(\d{1,16})(\.\d{1,2}){0,1}$/,
+        pattern: /^(\d{1,16})(\.\d{2,2}){0,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "monto_minimo",
-        pattern: /^(\d{1,16})(\.\d{1,2}){0,1}$/,
+        pattern: /^(\d{1,16})(\.\d{2,2}){0,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "tipo_marcacion",
-        pattern: /^[A-Za-z]{0,2}$/,
+        pattern: /^[A-Za-z]{2,2}$/,
         positveNegative: true,
         required: true,
         function: "marcacion",
@@ -194,6 +202,10 @@ async function tipoMarcacion(params) {
 }
 
 exports.validarArchivo = async (req, res, next) => {
+  let insertFilesPromise = null;
+  let nroCargaPromise = null;
+  let nroCargas = [];
+  let isOkUpload = null;
   try {
     let filesUploaded = req?.files; //ARCHIVOS SUBIDOS Y TEMPORALES
     let filesReaded = []; //ARCHIVOS LEIDOS Y EXISTENTES
@@ -275,7 +287,6 @@ exports.validarArchivo = async (req, res, next) => {
                     let funct = item3.function;
 
                     if (required === true) {
-                      // console.log(item2);
                       if (!item2[item3.columnName]) {
                         errors.push({
                           file: item.originalname,
@@ -284,19 +295,21 @@ exports.validarArchivo = async (req, res, next) => {
                         });
                       } else {
                         let match = value.match(pattern);
-                        // if (columnName === "tasa") {
-                        //   console.log({
-                        //     columnName: columnName,
-                        //     value: value,
-                        //     match,
-                        //   });
-                        // }
                         if (match === null) {
                           errors.push({
                             file: item.originalname,
                             type: "VALUE INCORRECT",
                             message: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}'`,
                           });
+                        }
+                        if (columnName === "fecha") {
+                          if (value !== "20" + fileDate) {
+                            errors.push({
+                              file: item.originalname,
+                              type: "VALUE INCORRECT",
+                              message: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}' el cual tiene que coincidir con la fecha del nombre del archivo`,
+                            });
+                          }
                         }
                         if (funct === "clasificadorcomun") {
                           if (value !== siglaClasificador) {
@@ -325,7 +338,7 @@ exports.validarArchivo = async (req, res, next) => {
                             montoNegociado: item2.monto,
                             montoMinimo: item2.monto_minimo,
                           });
-                          if (!value.toString().includes(marcacion)) {
+                          if (!marcacion.toString().includes(value)) {
                             errors.push({
                               file: item.originalname,
                               type: "VALUE INCORRECT",
@@ -355,15 +368,115 @@ exports.validarArchivo = async (req, res, next) => {
       filesReaded.push(dataSplit);
     });
 
+    nroCargaPromise = new Promise(async (resolve, reject) => {
+      let result = [];
+      let nroCarga = "";
+      map(req.files, async (item, index) => {
+        queryNroCarga = ValorMaximoDeCampoUtil(nameTable, {
+          fieldMax: "nro_carga",
+          where: [
+            {
+              key: "nombre_archivo",
+              value: item.originalname,
+              like: true,
+            },
+          ],
+        });
+        await pool.query(queryNroCarga).then((resultNroCarga) => {
+          if (!resultNroCarga.rowCount || resultNroCarga.rowCount < 1) {
+            nroCarga = 1;
+          } else {
+            nroCarga =
+              resultNroCarga.rows[0]?.max !== null
+                ? resultNroCarga.rows[0]?.max
+                : null;
+          }
+          result.push(nroCarga);
+          if (index === req.files.length - 1) {
+            resolve(result);
+          }
+        });
+      });
+    });
+
+    nroCargas = await nroCargaPromise.then((response) => {
+      return response;
+    });
+
+    insertFilesPromise = new Promise(async (resolve, reject) => {
+      let queryFiles = "";
+      let bodyQuery = [];
+      let currentFiles = [];
+      let resultsPromise = [];
+      let errorsPromise = [];
+      if (errors.length >= 1) {
+        isOkUpload = false;
+      } else {
+        isOkUpload = true;
+      }
+      map(req.files, (item, index) => {
+        currentFiles.push(item.originalname);
+        bodyQuery.push({
+          fecha_operacion: new Date(),
+          nombre_archivo: item.originalname,
+          nro_carga: nroCargas[index] === null ? 1 : nroCargas[index] + 1,
+          fecha_entrega: new Date(),
+          fecha_carga: new Date(),
+          id_usuario: req.user.id_usuario,
+          cargado: isOkUpload,
+        });
+      });
+      queryFiles = InsertarVariosUtil(nameTable, {
+        body: bodyQuery,
+        returnValue: ["id_carga_archivos", "nombre_archivo"],
+      });
+      await pool
+        .query(queryFiles)
+        .then(async (resultFiles) => {
+          resultsPromise.push({
+            files: currentFiles,
+            message:
+              resultFiles.rowCount >= 1
+                ? `Los archivos fueron insertado correctamente a la tabla '${nameTable}'`
+                : `El archivo fue insertado correctamente a la tabla '${nameTable}'`,
+            result: {
+              rowsUpdate: resultFiles.rows,
+              rowCount: resultFiles.rowCount,
+            },
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+          errorsPromise.push({
+            files: currentFiles,
+            type: "QUERY SQL ERROR",
+            message: `Hubo un error al insertar datos en la tabla '${nameTable}' ERROR: ${err.message}`,
+            err,
+          });
+        })
+        .finally(() => {
+          resolve({ resultsPromise, errorsPromise, bodyQuery });
+        });
+    });
+
     if (errors.length >= 1) {
-      respArchivoErroneo415(res, errors);
+      insertFilesPromise.then((response) => {
+        errors = [...errors, response.errorsPromise];
+        respArchivoErroneo415(res, errors);
+      });
     } else {
-      req.errors = errors;
-      req.filesReaded = filesReaded;
-      next();
+      insertFilesPromise.then((response) => {
+        req.errors = [...errors, response.errorsPromise];
+        req.results = response.resultsPromise;
+        req.returnsValues = response.resultsPromise[0].result.rowsUpdate;
+        req.filesReaded = filesReaded;
+        req.filesUploadedBD = response.bodyQuery;
+        next();
+      });
     }
   } catch (err) {
     respErrorServidor500(res, err, "Ocurrió un error inesperado.");
+    throw err;
   }
 };
 

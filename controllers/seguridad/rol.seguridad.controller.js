@@ -64,6 +64,7 @@ function ObtenerMenuAng(req, res) {
     } else {
       let querys = ObtenerMenuAngUtil(data);
       pool.query(querys.query, (err, result) => {
+        console.log(result);
         if (err) {
           respErrorServidor500(res, err);
         } else {
