@@ -10,6 +10,8 @@ const {
   ValidarIDActualizarUtil,
 } = require("../../utils/consulta.utils");
 
+const { SelectInnerJoinSimple } = require("../../utils/multiConsulta.utils");
+
 const {
   respErrorServidor500,
   respDatosNoRecibidos400,
@@ -19,6 +21,55 @@ const {
 } = require("../../utils/respuesta.utils");
 
 const nameTable = "APS_seg_usuario";
+
+function InstitucionConIDUsuario(req, res) {
+  const { id_usuario } = req.body;
+
+  if (!id_usuario) {
+    respDatosNoRecibidos400(
+      res,
+      "La información que se mando no es suficiente, falta el ID de usuario."
+    );
+  } else {
+    const params = {
+      select: [
+        `"APS_seg_usuario".usuario`,
+        `"APS_seg_institucion".institucion`,
+        `"APS_seg_institucion".sigla`,
+        `"APS_seg_institucion".codigo`,
+        `"APS_param_clasificador_comun".descripcion`,
+      ],
+      from: [`"APS_seg_usuario"`],
+      innerjoin: [
+        {
+          join: `"APS_seg_institucion"`,
+          on: [
+            `"APS_seg_usuario".id_institucion = "APS_seg_institucion".id_institucion`,
+          ],
+        },
+        {
+          join: `"APS_param_clasificador_comun"`,
+          on: [
+            `"APS_seg_institucion".id_tipo_entidad = "APS_param_clasificador_comun".id_clasificador_comun`,
+          ],
+        },
+      ],
+      where: [{ key: `"APS_seg_usuario".id_usuario`, value: id_usuario }],
+    };
+    let query = SelectInnerJoinSimple(params);
+    pool.query(query, (err, result) => {
+      if (err) {
+        respErrorServidor500(res, err);
+      } else {
+        if (!result.rowCount || result.rowCount < 1) {
+          respResultadoVacio404(res);
+        } else {
+          respResultadoCorrecto200(res, result);
+        }
+      }
+    });
+  }
+}
 
 //FUNCION PARA OBTENER TODOS LOS USUARIO DE SEGURIDAD
 function Listar(req, res) {
@@ -189,4 +240,5 @@ module.exports = {
   Insertar,
   Actualizar,
   Deshabilitar,
+  InstitucionConIDUsuario,
 };
