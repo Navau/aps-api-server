@@ -1,5 +1,5 @@
 const express = require("express");
-const controller = require("../../controllers/parametro/upload.parametro.controller");
+const controller = require("../../controllers/upload/upload.upload.controller");
 const md_auth = require("../../middleware/token.middleware");
 const md_files = require("../../middleware/files.middleware");
 

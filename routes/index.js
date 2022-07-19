@@ -14,12 +14,15 @@ const tablaAccionRoutes = require("./seguridad/tablaAccion.seguridad.route");
 const usuarioRoutes = require("./seguridad/usuario.seguridad.route");
 const usuarioRolRoutes = require("./seguridad/usuarioRol.seguridad.route");
 
+// Rutas de Auditoria (Se llama auditoria por la division en la base de datos)
+const cargaArchivosBolsaRoute = require("./auditoria/cargaArchivoBolsa.auditoria.route");
+const cargaArchivosPensionesSegurosRoute = require("./auditoria/cargaArchivoPensionesSeguros.auditoria.route");
+
 // Rutas Operativas (Se llama Operativas por la division en la base de datos)
 const archivoKRoute = require("./operativo/archivoK.operativo.route");
 const archivoLRoute = require("./operativo/archivoL.operativo.route");
 const archivoNRoute = require("./operativo/archivoN.operativo.route");
 const archivoPRoute = require("./operativo/archivoP.operativo.route");
-const cargaArchivosBolsaRoute = require("./operativo/cargaArchivoBolsa.operativo.route");
 const emisorPatrimonioRoute = require("./operativo/emisorPatrimonio.operativo.route");
 const otrosActivosRoute = require("./operativo/otrosActivos.operativo.route");
 const otrosActivosCuponRoute = require("./operativo/otrosActivosCupon.operativo.route");
@@ -48,14 +51,16 @@ const rangoPlazoRoute = require("./parametro/rangoPlazo.parametro.route");
 const sectorEconomicoRoute = require("./parametro/sectorEconomico.parametro.route");
 const tipoInstrumentoRoute = require("./parametro/tipoInstrumento.parametro.route");
 const tipoOperacionRoute = require("./parametro/tipoOperacion.parametro.route");
-const uploadRoute = require("./parametro/upload.parametro.route");
+const archivosPensionesSegurosRoute = require("./parametro/archivosPensionesSeguros.parametro.route");
 
 // Rutas de Acceso (Se llama Acceso por la autenticacion)
 const accessRoutes = require("./acceso/acceso.route");
 
+// Rutas de Subida de Archivos
+const uploadRoute = require("./upload/upload.upload.route");
+
 //Rutas de Clasificador (Se llama Clasificador por la Base de datos)
 const cBolsaValoresRoute = require("./clasificador/cBolsaValores.clasificador.route");
-
 const cCalificacionSegurosRoute = require("./clasificador/cCalificacionSeguros.clasificador.route.js");
 const cCalificacionFondosRoute = require("./clasificador/cCalificacionFondos.clasificador.route.js");
 const cCalificacionEmisorRoute = require("./clasificador/cCalificacionEmisor.clasificador.route.js");
@@ -99,6 +104,10 @@ function routerApi(app) {
   router.use("/ArchivoN", archivoNRoute);
   router.use("/ArchivoP", archivoPRoute);
   router.use("/CargaArchivosBolsa", cargaArchivosBolsaRoute);
+  router.use(
+    "/CargaArchivosPensionesSeguros",
+    cargaArchivosPensionesSegurosRoute
+  );
   router.use("/CarteraSIP", carteraSIPRoute);
   router.use("/CarteraSIPAgrupacion", carteraSIPAgrupacionRoute);
   router.use("/ClasificadorComun", clasificadorComunRoute);
@@ -138,6 +147,8 @@ function routerApi(app) {
   router.use("/Usuario", usuarioRoutes);
   router.use("/UsuarioRol", usuarioRolRoutes);
   // router.use('/WeatherForecast', )
+
+  router.use("/ArchivosPensionesSeguros", archivosPensionesSegurosRoute);
 
   //Clasificador
   router.use("/cBolsaValores", cBolsaValoresRoute);

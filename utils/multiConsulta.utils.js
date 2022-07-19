@@ -15,7 +15,7 @@ function SelectInnerJoinSimple(params) {
 
   query = query.substring(0, query.length - 2);
 
-  query += ` FROM `;
+  query += ` FROM public.`;
 
   map(from, (item, index) => {
     query += `${item}, `;
