@@ -120,7 +120,6 @@ function FormatearObtenerMenuAngUtil(data) {
   return resultFinal;
 }
 
-<<<<<<< HEAD
 function CargarArchivoABaseDeDatosUtil(table, params) {
   let query = "";
   // console.log(params);
@@ -181,8 +180,6 @@ function ResetearIDUtil(table, params) {
   return query;
 }
 
-=======
->>>>>>> 4d1fac3b21edddf4e8f107a30cfc4c9a88dc78a0
 function ListarUtil(table, params) {
   let query = "";
   if (params?.clasificador) {
@@ -213,11 +210,8 @@ function ListarUtil(table, params) {
     if (params?.status) {
       params.status === "activo" && (query = query + " WHERE activo = true");
       params.status === "status" && (query = query + " WHERE status = true");
-<<<<<<< HEAD
     } else if (params?.idKey && params?.idValue) {
       query = query + ` WHERE ${params.idKey} = ${params.idValue}`;
-=======
->>>>>>> 4d1fac3b21edddf4e8f107a30cfc4c9a88dc78a0
     }
     query && (query = query + ";");
   }
@@ -391,7 +385,6 @@ function InsertarUtil(table, params) {
 
   map(params.body, (item, index) => {
     if (idAux.idKey !== index) {
-<<<<<<< HEAD
       if (item instanceof Date) {
         index &&
           (query =
@@ -428,36 +421,6 @@ function InsertarUtil(table, params) {
           } else {
             index && (query = query + `'${item}', `);
           }
-=======
-      if (typeof item === "string") {
-        if (index === "password") {
-          index && (query = query + `crypt('${item}', gen_salt('bf')), `);
-        } else if (
-          index === "fecha_activo" ||
-          index === "fecha_emision" ||
-          index === "fecha_vencimiento" ||
-          index === "vencimiento_1er_cupon"
-        ) {
-          index &&
-            (query =
-              query + `'${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}', `);
-        } else {
-          index && (query = query + `'${item}', `);
-        }
-      } else if (typeof item === "number") {
-        index && (query = query + `${item}, `);
-      } else if (typeof item === "boolean") {
-        index && (query = query + `${item}, `);
-      } else if (typeof item === "object" && item === null) {
-        index && (query = query + `${item}, `);
-      } else {
-        if (index === "fecha_activo") {
-          index &&
-            (query =
-              query + `'${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}', `);
-        } else {
-          index && (query = query + `'${item}', `);
->>>>>>> 4d1fac3b21edddf4e8f107a30cfc4c9a88dc78a0
         }
       }
     }
@@ -472,7 +435,6 @@ function InsertarUtil(table, params) {
   return query;
 }
 
-<<<<<<< HEAD
 function InsertarVariosUtil(table, params) {
   let query = "";
   params.body && (query = query + `INSERT INTO public."${table}"`);
@@ -548,8 +510,6 @@ function InsertarVariosUtil(table, params) {
   return query;
 }
 
-=======
->>>>>>> 4d1fac3b21edddf4e8f107a30cfc4c9a88dc78a0
 function ActualizarUtil(table, params) {
   let query = "";
 
@@ -559,16 +519,12 @@ function ActualizarUtil(table, params) {
   query &&
     map(params.body, (item, index) => {
       index = ponerComillasACamposConMayuscula(index);
-<<<<<<< HEAD
       if (item instanceof Date) {
         index &&
           (query =
             query +
             ` ${index} = '${moment(item).format("YYYY-MM-DD HH:mm:ss.SSS")}',`);
       } else if (typeof item === "string") {
-=======
-      if (typeof item === "string") {
->>>>>>> 4d1fac3b21edddf4e8f107a30cfc4c9a88dc78a0
         if (index === "password") {
           index &&
             (query = query + ` ${index} = crypt('${item}',gen_salt('bf')),`);
@@ -670,7 +626,6 @@ function DeshabilitarUtil(table, params) {
   return query;
 }
 
-<<<<<<< HEAD
 function EliminarUtil(table, params) {
   let query = "";
   params?.where && (query = query + `DELETE FROM public."${table}"`);
@@ -699,8 +654,6 @@ function EliminarUtil(table, params) {
   return query;
 }
 
-=======
->>>>>>> 4d1fac3b21edddf4e8f107a30cfc4c9a88dc78a0
 function ValidarIDActualizarUtil(nameTable, body, newID) {
   let indexId = nameTable.indexOf("_", 5);
   let idKey = newID
@@ -750,7 +703,6 @@ module.exports = {
   EscogerUtil,
   EscogerLlaveClasificadorUtil,
   InsertarUtil,
-<<<<<<< HEAD
   InsertarVariosUtil,
   ActualizarUtil,
   DeshabilitarUtil,
@@ -762,12 +714,4 @@ module.exports = {
   ObtenerMenuAngUtil,
   FormatearObtenerMenuAngUtil,
   CargarArchivoABaseDeDatosUtil,
-=======
-  ActualizarUtil,
-  DeshabilitarUtil,
-  ValidarIDActualizarUtil,
-  ObtenerRolUtil,
-  ObtenerMenuAngUtil,
-  FormatearObtenerMenuAngUtil,
->>>>>>> 4d1fac3b21edddf4e8f107a30cfc4c9a88dc78a0
 };

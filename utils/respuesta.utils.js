@@ -1,22 +1,14 @@
 function respErrorServidor500(res, err, msg) {
   console.log(err);
-<<<<<<< HEAD
   let errMessage = err?.message ? err?.message : "";
   res.status(500).send({
     resultado: 0,
     datos: null,
     mensaje: msg ? msg + errMessage : "Error del servidor. ERROR:" + errMessage,
-=======
-  res.status(500).send({
-    resultado: 0,
-    datos: null,
-    mensaje: msg ? msg : "Error del servidor.",
->>>>>>> 4d1fac3b21edddf4e8f107a30cfc4c9a88dc78a0
     err,
   });
 }
 
-<<<<<<< HEAD
 function respErrorMulter500(res, err, msg) {
   console.log(err);
   let errMessage = err?.message ? err?.message : "";
@@ -50,19 +42,13 @@ function respErrorExtensionError403(res, err, msg) {
     .end();
 }
 
-=======
->>>>>>> 4d1fac3b21edddf4e8f107a30cfc4c9a88dc78a0
 function respResultadoVacio404(res, msg) {
   res.status(404).send({
     resultado: 0,
     datos: null,
     mensaje: msg
       ? msg
-<<<<<<< HEAD
       : "No se logró realizar correctamente la petición, debido a que la información no existe.",
-=======
-      : "No se logró realizar correctamente la petición, debido a que no se pudo encontrar u obtener la información.",
->>>>>>> 4d1fac3b21edddf4e8f107a30cfc4c9a88dc78a0
   });
 }
 
@@ -90,7 +76,6 @@ function respDatosNoRecibidos400(res, msg) {
   });
 }
 
-<<<<<<< HEAD
 function respArchivoErroneo415(res, err, msg) {
   res.status(415).send({
     resultado: 0,
@@ -102,8 +87,6 @@ function respArchivoErroneo415(res, err, msg) {
   });
 }
 
-=======
->>>>>>> 4d1fac3b21edddf4e8f107a30cfc4c9a88dc78a0
 function respIDNoRecibido400(res, msg) {
   res.status(400).send({
     resultado: 0,
@@ -114,14 +97,10 @@ function respIDNoRecibido400(res, msg) {
 
 module.exports = {
   respErrorServidor500,
-<<<<<<< HEAD
   respErrorMulter500,
   respErrorExtensionError403,
   respDatosNoRecibidos400,
   respArchivoErroneo415,
-=======
-  respDatosNoRecibidos400,
->>>>>>> 4d1fac3b21edddf4e8f107a30cfc4c9a88dc78a0
   respResultadoCorrecto200,
   respResultadoVacio404,
   respIDNoRecibido400,
