@@ -234,7 +234,7 @@ exports.validarArchivo = async(req, res, next) => {
                 errors.push({
                     file: item.originalname,
                     type: "ERROR NAME",
-                    message: "El nombre del archivo noo coincide con la fecha actual.",
+                    message: "El nombre del archivo no coincide con la fecha actual.",
                 });
             } else {
                 if (data.length === 0) {
