@@ -59,7 +59,7 @@ function formatearDatosEInsertarCabeceras(headers, dataSplit) {
         map(headers, (item2, index2) => {
             resultObject = {
                 ...resultObject,
-                [index2]: rowSplit[counterAux] ? .trim().replace(/['"]+/g, ""), //QUITAR ESPACIOS Y QUITAR COMILLAS DOBLES
+                [index2]: rowSplit[counterAux]?.trim().replace(/['"]+/g, ""), //QUITAR ESPACIOS Y QUITAR COMILLAS DOBLES
             };
             counterAux++;
         });
@@ -205,7 +205,7 @@ exports.validarArchivo = async(req, res, next) => {
     let nroCargas = [];
     let isOkUpload = null;
     try {
-        let filesUploaded = req ? .files; //ARCHIVOS SUBIDOS Y TEMPORALES
+        let filesUploaded = req?.files; //ARCHIVOS SUBIDOS Y TEMPORALES
         let filesReaded = []; //ARCHIVOS LEIDOS Y EXISTENTES
         let errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
         let clasificador = await clasificadorComun("APS_param_clasificador_comun", {
@@ -265,7 +265,7 @@ exports.validarArchivo = async(req, res, next) => {
                                 headers,
                                 dataSplit
                             );
-                            if (arrayDataObject ? .err === true) {
+                            if (arrayDataObject?.err === true) {
                                 map(arrayDataObject.errors, (itemError, indexError) => {
                                     errors.push({
                                         file: item.originalname,
@@ -378,8 +378,8 @@ exports.validarArchivo = async(req, res, next) => {
                         nroCarga = 1;
                     } else {
                         nroCarga =
-                            resultNroCarga.rows[0] ? .max !== null ?
-                            resultNroCarga.rows[0] ? .max :
+                            resultNroCarga.rows[0]?.max !== null ?
+                            resultNroCarga.rows[0]?.max :
                             null;
                     }
                     result.push(nroCarga);
@@ -410,7 +410,7 @@ exports.validarArchivo = async(req, res, next) => {
                 bodyQuery.push({
                     fecha_operacion: new Date(),
                     nombre_archivo: item.originalname,
-                    nro_carga: nroCargas[index] === null ? 1 : nroCargas[index] + 1,
+                    nro_carga: nroCargas[index] === null?1 : nroCargas[index] + 1,
                     fecha_entrega: new Date(),
                     fecha_carga: new Date(),
                     id_usuario: req.user.id_usuario,
@@ -495,8 +495,8 @@ exports.subirArchivo = (req, res, next) => {
                 respErrorServidor500(res, err);
             }
         } else {
-            let filesUploaded = req ? .files;
-            if (!filesUploaded || filesUploaded ? .length === 0) {
+            let filesUploaded = req?.files;
+            if (!filesUploaded || filesUploaded?.length === 0) {
                 respDatosNoRecibidos400(
                     res,
                     "No se encontro ningún archivo para subir."
