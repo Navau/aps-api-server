@@ -201,6 +201,8 @@ async function tipoMarcacion(params) {
   return resultFinal;
 }
 
+function FiltrarNombreArchivo(nameFile) {}
+
 exports.validarArchivo = async (req, res, next) => {
   let insertFilesPromise = null;
   let nroCargaPromise = null;
