@@ -1,0 +1,25 @@
+{
+  "name": "aps-api-server",
+  "version": "1.0.0",
+  "description": "API REST para APS",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jose Manuel",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.1",
+    "jwt-simple": "^0.5.6",
+    "lodash": "^4.17.21",
+    "moment": "^2.29.3",
+    "multer": "^1.4.5-lts.1",
+    "mz": "^2.7.0",
+    "pg": "^8.7.3"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.18"
+  }
+}
