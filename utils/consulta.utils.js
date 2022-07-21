@@ -73,7 +73,7 @@ function ObtenerMenuAngUtil(data) {
     on public."APS_seg_tabla_accion".id_tabla = public."APS_seg_tabla".id_tabla 
     inner join public."APS_seg_permiso" 
     on public."APS_seg_permiso".id_tabla_accion = public."APS_seg_tabla_accion".id_tabla_accion 
-    where public."APS_seg_modulo".status = true and id_rol = ${id_rol.toString()} 
+    where public."APS_seg_modulo".status = true and id_rol = ${data.id_rol.toString()} 
     order by "APS_seg_modulo".orden) as menu`;
 
   // console.log(querydet);

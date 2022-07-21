@@ -204,49 +204,34 @@ async function tipoMarcacion(params) {
 async function FiltrarNombreArchivo(paramsFilter) {
   const id_rol = paramsFilter.req.user.id_rol;
   const id_usuario = paramsFilter.req.user.id_usuario;
+  console.log(paramsFilter);
 
-  const ObtenerInstitucionPromise = new Promise((resolve, reject) => {
+  const ObtenerListaArchivosPromise = new Promise(async (resolve, reject) => {
     const params = {
-      select: [
-        `"APS_seg_usuario".usuario`,
-        `"APS_seg_institucion".institucion`,
-        `"APS_seg_institucion".sigla`,
-        `"APS_seg_institucion".codigo`,
-        `"APS_param_clasificador_comun".descripcion`,
-      ],
-      from: [`"APS_seg_usuario"`],
-      innerjoin: [
-        {
-          join: `"APS_seg_institucion"`,
-          on: [
-            `"APS_seg_usuario".id_institucion = "APS_seg_institucion".id_institucion`,
-          ],
-        },
-        {
-          join: `"APS_param_clasificador_comun"`,
-          on: [
-            `"APS_seg_institucion".id_tipo_entidad = "APS_param_clasificador_comun".id_clasificador_comun`,
-          ],
-        },
-      ],
-      where: [{ key: `"APS_seg_usuario".id_usuario`, value: id_usuario }],
+      body: {
+        id_usuario,
+      },
     };
-    let query = SelectInnerJoinSimple(params);
-    pool.query(query, (err, result) => {
-      if (err) {
-        reject(result);
-      } else {
+    let query = EscogerUtil("APS_view_archivos_pensiones_seguros", params);
+    await pool
+      .query(query)
+      .then((result) => {
         resolve(result);
-      }
-    });
+      })
+      .catch((err) => {
+        reject(err);
+      });
   });
 
-  //   nnnaaaammdd.fff
-  // nnn Código Entidad
-  // aaaa Año
-  // mm Mes
-  // dd Día
-  // fff Corresponde al Archivo
+  let result = await ObtenerListaArchivosPromise.then((response) => {
+    console.log(response);
+  })
+    .catch((err) => {
+      console.log(err);
+    })
+    .finally(() => {
+      console.log("finally");
+    });
 }
 
 exports.validarArchivo = async (req, res, next) => {
@@ -529,6 +514,7 @@ exports.validarArchivo = async (req, res, next) => {
 };
 
 exports.subirArchivo = (req, res, next) => {
+  FiltrarNombreArchivo({ req, res });
   const storage = multer.diskStorage({
     destination: (req, file, cb) => {
       cb(null, "./uploads/tmp");
