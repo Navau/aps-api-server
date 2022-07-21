@@ -61,20 +61,24 @@ function ObtenerMenuAngUtil(data) {
       where public."APS_seg_permiso".status = true AND 
       id_rol = ${data.id_rol} order by public."APS_seg_modulo".id_modulo, public."APS_seg_tabla".orden) as children`;
 
-  query = `select DISTINCT modulo as text, case 
-  when modulo like 'Tablas Básicas' then 'view_list' 
-  when modulo like 'Datos Operativos' then 'keyboard' 
-  when modulo like 'Seguridad' 
-  then 'vpn_key' else 'tab' end as icon, null as children 
-  from public."APS_seg_modulo" 
-  inner join public."APS_seg_tabla" on public."APS_seg_modulo".id_modulo = public."APS_seg_tabla".id_modulo 
-  inner join public."APS_seg_tabla_accion" on public."APS_seg_tabla_accion".id_tabla = public."APS_seg_tabla".id_tabla 
-  inner join public."APS_seg_permiso" on public."APS_seg_permiso".id_tabla_accion = public."APS_seg_tabla_accion".id_tabla_accion 
-  where public."APS_seg_modulo".status = true and id_rol = ${data.id_rol}`;
+  query = `SELECT text, icon, children FROM (select DISTINCT modulo as text, case 
+    when modulo like 'Tablas Básicas' then 'view_list' 
+    when modulo like 'Datos Operativos' then 'keyboard' 
+    when modulo like 'Seguridad' 
+    then 'vpn_key' else 'tab' end as icon, null as children, "APS_seg_modulo".orden 
+    from public."APS_seg_modulo" 
+    inner join public."APS_seg_tabla" 
+    on public."APS_seg_modulo".id_modulo = public."APS_seg_tabla".id_modulo 
+    inner join public."APS_seg_tabla_accion" 
+    on public."APS_seg_tabla_accion".id_tabla = public."APS_seg_tabla".id_tabla 
+    inner join public."APS_seg_permiso" 
+    on public."APS_seg_permiso".id_tabla_accion = public."APS_seg_tabla_accion".id_tabla_accion 
+    where public."APS_seg_modulo".status = true and id_rol = ${id_rol.toString()} 
+    order by "APS_seg_modulo".orden) as menu`;
 
   // console.log(querydet);
   // console.log(query);
-  console.log(data.id_rol);
+  console.log("ID ROL OBTENER MENU ANGULAR", data.id_rol);
 
   return {
     querydet,

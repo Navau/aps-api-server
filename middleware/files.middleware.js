@@ -201,7 +201,53 @@ async function tipoMarcacion(params) {
   return resultFinal;
 }
 
-function FiltrarNombreArchivo(nameFile) {}
+async function FiltrarNombreArchivo(paramsFilter) {
+  const id_rol = paramsFilter.req.user.id_rol;
+  const id_usuario = paramsFilter.req.user.id_usuario;
+
+  const ObtenerInstitucionPromise = new Promise((resolve, reject) => {
+    const params = {
+      select: [
+        `"APS_seg_usuario".usuario`,
+        `"APS_seg_institucion".institucion`,
+        `"APS_seg_institucion".sigla`,
+        `"APS_seg_institucion".codigo`,
+        `"APS_param_clasificador_comun".descripcion`,
+      ],
+      from: [`"APS_seg_usuario"`],
+      innerjoin: [
+        {
+          join: `"APS_seg_institucion"`,
+          on: [
+            `"APS_seg_usuario".id_institucion = "APS_seg_institucion".id_institucion`,
+          ],
+        },
+        {
+          join: `"APS_param_clasificador_comun"`,
+          on: [
+            `"APS_seg_institucion".id_tipo_entidad = "APS_param_clasificador_comun".id_clasificador_comun`,
+          ],
+        },
+      ],
+      where: [{ key: `"APS_seg_usuario".id_usuario`, value: id_usuario }],
+    };
+    let query = SelectInnerJoinSimple(params);
+    pool.query(query, (err, result) => {
+      if (err) {
+        reject(result);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+
+  //   nnnaaaammdd.fff
+  // nnn Código Entidad
+  // aaaa Año
+  // mm Mes
+  // dd Día
+  // fff Corresponde al Archivo
+}
 
 exports.validarArchivo = async (req, res, next) => {
   let insertFilesPromise = null;

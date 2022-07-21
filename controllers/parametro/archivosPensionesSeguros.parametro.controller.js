@@ -20,7 +20,7 @@ const {
   respIDNoRecibido400,
 } = require("../../utils/respuesta.utils");
 
-const nameTable = "APS_param_archivos_pensiones_seguros";
+const nameTable = "APS_view_archivos_pensiones_seguros";
 
 function SeleccionarArchivos(req, res) {
   const { id_rol } = req.body;
