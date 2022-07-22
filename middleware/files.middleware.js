@@ -289,7 +289,7 @@ function obtenerValidaciones(typeFile) {
         },
         {
             columnName: "tasa_nominal_emision",
-            pattern: /^[0-9]*(\.[0-9]{0,2})?$/,
+            pattern: /^([0-9]{0,2})(\.[0-9]{0,8})?$/,
             positveNegative: true,
             required: true,
             function: null,
@@ -427,6 +427,100 @@ function obtenerValidaciones(typeFile) {
             function: null,
         },
     ];
+    } else if (typeFile == "481") {
+        result = [
+        {
+            columnName: "instrumento",
+            pattern: /^[A-Za-z]{0,3}$/,
+            positveNegative: true,
+            required: true,
+            function: "instrumento",
+        },
+        {
+            columnName: "serie",
+            pattern: /^[A-Za-z]{0,3}$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "codigo_valoracion",
+            pattern: /^[A-Za-z]{0,10}$/,
+            positveNegative: true,
+            required: true,
+            function: "codigoValoracion",
+        },
+        {
+            columnName: "tasa_relevante_operacion",
+            pattern: /^([0-9]{0,2})(\.[0-9]{0,8})?$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "cantidad",
+            pattern: /^\d{1,7}$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "plazo_valor",
+            pattern: /^\d{1,7}$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "plazo_economico",
+            pattern: /^\d{1,7}$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "precio_unitario_mo",
+            pattern: /^[0-9]*(\.[0-9]{0,2})?$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "precio_total_mo",
+            pattern: /^[0-9]*(\.[0-9]{0,2})?$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "codigo_mo",
+            pattern: /^[A-Za-z]{1,1}$/,
+            positveNegative: true,
+            required: true,
+            function: "codigoMonedaOriginal",
+        },
+        {
+            columnName: "precio_total_bs",
+            pattern: /^[0-9]*(\.[0-9]{0,2})?$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "calificacion_riesgo",
+            pattern: /^[A-Za-z0-9]{0,3}$/,
+            positveNegative: true,
+            required: true,
+            function: "calificacionRiesgoGrande",
+        },
+        {
+            columnName: "fecha_adquisicion",
+            pattern: /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+            positveNegative: false,
+            required: true,
+            function: null,
+        },        
+    ];
     }
 
     return result;
@@ -461,6 +555,25 @@ async function siglaEntidadFinanciera(params) {
 }
 async function moneda(params) {
     // SELECT sigla FROM public."APS_param_moneda";
+    return params;
+}
+async function codigoValoracion(params) {
+    // SELECT sigla FROM public."APS_param_tipo_instrumento" where id_tipo_renta=138;
+    return params;
+}
+async function codigoMonedaOriginal(params) {
+    // SELECT codigo_valoracion FROM public."APS_param_moneda" where id_moneda<>5 ;
+    return params;
+}
+async function calificacionRiesgoGrande(params) {
+    // Si Instrumento = | SELECT sigla FROM public."APS_param_tipo_instrumento" where id_tipo_renta=135;
+    // y Plazo del Valor <360 | Entonces SELECT descripcion FROM public."APS_param_clasificador_comun" where id_clasificador_comun_grupo=6 and sigla='CP';
+    // 
+    // Si Instrumento = | SELECT sigla FROM public."APS_param_tipo_instrumento" where id_tipo_renta=135;
+    // y Plazo del Valor >=360 | Entonces SELECT descripcion FROM public."APS_param_clasificador_comun" where id_clasificador_comun_grupo=6 and sigla='LP';
+    //
+    // Si Instrumento = | SELECT sigla FROM public."APS_param_tipo_instrumento" where id_tipo_renta=136;
+    // | Entonces SELECT descripcion FROM public."APS_param_clasificador_comun" where id_clasificador_comun_grupo=5;
     return params;
 }
 
