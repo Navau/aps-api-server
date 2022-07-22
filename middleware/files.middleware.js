@@ -146,14 +146,14 @@ function obtenerValidaciones(typeFile) {
         result = [
         {
             columnName: "fecha_operacion",
-            pattern: /^\d{4}([\-/.])(0?[1-9]|1[1-2])\1(3[01]|[12][0-9]|0?[1-9])$/,
+            pattern: /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
             positveNegative: false,
             required: true,
             function: null,
         },
         {
             columnName: "codigo_operacion",
-            pattern: /^[A-Za-z0-9]{0,1}$/,
+            pattern: /^[A-Za-z0-9]{1,1}$/,
             positveNegative: true,
             required: true,
             function: "codigoOperacionFunction",
@@ -166,7 +166,7 @@ function obtenerValidaciones(typeFile) {
             function: "instrumentoFunction",
         },
         {
-            columnName: "serie",
+            columnName: "Serie",
             pattern: /^[A-Za-z0-9]{5,23}$/,
             positveNegative: true,
             required: true,
@@ -194,14 +194,21 @@ function obtenerValidaciones(typeFile) {
             function: null,
         },
         {
-            columnName: "precio_negociacion_moneda_original",
+            columnName: "precio_negociacion_mo",
             pattern: /^(\d{1,10})(\.\d{2,2}){0,1}$/,
             positveNegative: true,
             required: true,
             function: null,
         },
         {
-            columnName: "precio_total_moneda_original",
+            columnName: "precio_total_mo",
+            pattern: /^(\d{1,10})(\.\d{2,2}){0,1}$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "precio_total_bs",
             pattern: /^(\d{1,10})(\.\d{2,2}){0,1}$/,
             positveNegative: true,
             required: true,
