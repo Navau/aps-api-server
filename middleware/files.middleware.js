@@ -243,7 +243,7 @@ function obtenerValidaciones(typeFile) {
             function: "codigoCustodia",
         },
     ];
-    }else if (typeFile == "441") {
+    } else if (typeFile == "441") {
         result = [
         {
             columnName: "instrumento",
@@ -322,6 +322,65 @@ function obtenerValidaciones(typeFile) {
             required: true,
             function: null,
         }
+    ];
+    } else if (typeFile == "44C") {
+        result = [
+        {
+            columnName: "instrumento",
+            pattern: /^[A-Za-z0-9]{0,3}$/,
+            positveNegative: true,
+            required: true,
+            function: "instrumento",
+        },
+        {
+            columnName: "serie",
+            pattern: /^[A-Za-z0-9]{5,23}$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "nro_pago",
+            pattern: /^\d{1,3}$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "fecha_pago",
+            pattern: /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+            positveNegative: false,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "pago_intereses",
+            pattern: /^[0-9]*(\.[0-9]{0,2})?$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "amortizacion_capital",
+            pattern: /^[0-9]*(\.[0-9]{0,2})?$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "flujo_total",
+            pattern: /^[0-9]*(\.[0-9]{0,2})?$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "saldo_amortizar",
+            pattern: /^[0-9]*(\.[0-9]{0,2})?$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
     ];
     }
 
