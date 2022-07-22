@@ -382,6 +382,51 @@ function obtenerValidaciones(typeFile) {
             function: null,
         },
     ];
+    } else if (typeFile == "451") {
+        result = [
+        {
+            columnName: "tipo_cuenta",
+            pattern: /^[A-Za-z]{0,3}$/,
+            positveNegative: true,
+            required: true,
+            function: "tipoCuenta",
+        },
+        {
+            columnName: "sigla_entidad_financiera",
+            pattern: /^[A-Za-z]{0,3}$/,
+            positveNegative: true,
+            required: true,
+            function: "siglaEntidadFinanciera",
+        },
+        {
+            columnName: "nro_cuenta_entidad",
+            pattern: /^[A-Za-z0-9]{5,20}$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "moneda",
+            pattern: /^[A-Za-z]{0,3}$/,
+            positveNegative: true,
+            required: true,
+            function: "moneda",
+        },
+        {
+            columnName: "saldo_mo_original",
+            pattern: /^[0-9]*(\.[0-9]{0,2})?$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "total_saldo_bs",
+            pattern: /^[0-9]*(\.[0-9]{0,2})?$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+    ];
     }
 
     return result;
@@ -404,6 +449,18 @@ async function calificacionRiesgo(params) {
 }
 async function codigoCustodia(params) {
     // SELECT sigla FROM public."APS_param_clasificador_comun" WHERE id_clasificador_comun_grupo=9;
+    return params;
+}
+async function tipoCuenta(params) {
+    // SELECT sigla FROM public."APS_param_clasificador_comun" where id_clasificador_comun_grupo = 15;
+    return params;
+}
+async function siglaEntidadFinanciera(params) {
+    // SELECT codigo_rmv FROM public."APS_param_emisor" WHERE id_sector_economico = 6;
+    return params;
+}
+async function moneda(params) {
+    // SELECT sigla FROM public."APS_param_moneda";
     return params;
 }
 
