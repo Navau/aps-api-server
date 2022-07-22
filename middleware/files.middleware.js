@@ -121,6 +121,7 @@ exports.validarArchivo = async (req, res, next) => {
   let nroCargaPromise = null;
   let nroCargas = [];
   let isOkUpload = null;
+  console.log(req.body);
   let codeCurrentFile = null;
   let isOkQuerys = false;
   try {
@@ -143,7 +144,9 @@ exports.validarArchivo = async (req, res, next) => {
       .catch((err) => {
         return { err };
       });
-    const currentDate = moment().format("YYYYMMDD");
+    const currentDate = req.body.fecha_operacion
+      ? req.body.fecha_operacion.split("-").join("")
+      : moment().format("YYYYMMDD");
 
     map(filesUploaded, async (item, index) => {
       const filePath = `./uploads/tmp/${item.originalname}`;
