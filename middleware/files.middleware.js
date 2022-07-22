@@ -156,14 +156,14 @@ function obtenerValidaciones(typeFile) {
             pattern: /^[A-Za-z0-9]{1,1}$/,
             positveNegative: true,
             required: true,
-            function: "codigoOperacionFunction",
+            function: "codigoOperacion",
         },
         {
             columnName: "instrumento",
             pattern: /^[A-Za-z0-9]{0,3}$/,
             positveNegative: true,
             required: true,
-            function: "instrumentoFunction",
+            function: "instrumento",
         },
         {
             columnName: "Serie",
@@ -219,7 +219,7 @@ function obtenerValidaciones(typeFile) {
             pattern: /^[A-Za-z0-9]{0,3}$/,
             positveNegative: true,
             required: true,
-            function: "codigoMercadoFunction",
+            function: "codigoMercado",
         },
         {
             columnName: "precio_unitario",
@@ -233,37 +233,117 @@ function obtenerValidaciones(typeFile) {
             pattern: /^[A-Za-z0-9]{1,3}$/,
             positveNegative: true,
             required: true,
-            function: "calificacionRiesgoFunction",
+            function: "calificacionRiesgo",
         },
         {
             columnName: "codigo_custodia",
             pattern: /^[A-Za-z0-9]{0,3}$/,
             positveNegative: true,
             required: true,
-            function: "codigoCustodiaFunction",
+            function: "codigoCustodia",
         },
+    ];
+    }else if (typeFile == "441") {
+        result = [
+        {
+            columnName: "instrumento",
+            pattern: /^[A-Za-z0-9]{0,3}$/,
+            positveNegative: true,
+            required: true,
+            function: "instrumento",
+        },
+        {
+            columnName: "serie",
+            pattern: /^[A-Za-z0-9]{5,23}$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "fecha_vencimiento",
+            pattern: /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+            positveNegative: false,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "fecha_emision",
+            pattern: /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+            positveNegative: false,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "precio_nominal_mo",
+            pattern: /^[0-9]*(\.[0-9]{0,2})?$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "precio_nominal_bs",
+            pattern: /^[0-9]*(\.[0-9]{0,2})?$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "tasa_nominal_emision",
+            pattern: /^[0-9]*(\.[0-9]{0,2})?$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "plazo_emision_valor",
+            pattern: /^([0-9]\d{4}|\d[0-9]\d{3}|\d{2}[0-9]\d{2}|\d{3}[0-9]\d|\d{4}[0-9])$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "periodo_pago_cupones",
+            pattern: /^([A-Z]\d{4}|\d[0-9]\d{3}|\d{2}[0-9]\d{2}|\d{3}[0-9]\d|\d{4}[0-9])$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "cantidad_pagos",
+            pattern: /^[0-9]\d{0,2}(?:\,\d{1,3})?$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        },
+        {
+            columnName: "tasa_interes_variable",
+            pattern: /^([0-9]{0,2})(\.[0-9]{0,8})?$/,
+            positveNegative: true,
+            required: true,
+            function: null,
+        }
     ];
     }
 
     return result;
 }
-async function codigoOperacionFunction(params) {
+async function codigoOperacion(params) {
     // SELECT codigo_aps FROM public."APS_param_tipo_operacion";
     return params;
 }
-async function instrumentoFunction(params) {
+async function instrumento(params) {
     // SELECT sigla FROM public."APS_param_tipo_instrumento" where id_tipo_renta in (135,138);"
     return params;
 }
-async function codigoMercadoFunction(params) {
+async function codigoMercado(params) {
     // SELECT codigo_aps FROM public."APS_param_lugar_negociacion" where id_lugar_negociacion <> 58;
     return params;
 }
-async function calificacionRiesgoFunction(params) {
+async function calificacionRiesgo(params) {
     // SELECT descripcion FROM public."APS_param_clasificador_comun" where id_clasificador_comun_grupo=6;
     return params;
 }
-async function codigoCustodiaFunction(params) {
+async function codigoCustodia(params) {
     // SELECT sigla FROM public."APS_param_clasificador_comun" WHERE id_clasificador_comun_grupo=9;
     return params;
 }
