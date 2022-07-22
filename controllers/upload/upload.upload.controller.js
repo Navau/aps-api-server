@@ -28,7 +28,7 @@ const {
   respArchivoErroneo415,
 } = require("../../utils/respuesta.utils");
 
-const nameTable = "APS_aud_carga_archivos_bolsa";
+var nameTable = "APS_aud_carga_archivos_bolsa";
 
 async function CargarArchivo(req, res) {
   let fieldMax = "id_carga_archivos";
@@ -36,14 +36,15 @@ async function CargarArchivo(req, res) {
   let idArchivo = null;
   let errors = [];
   let filesReaded = req.filesReaded;
+  nameTable = req.nameTableAud;
   let resultFinal = [];
   let uploadPromise = null;
   try {
     uploadPromise = new Promise(async (resolve, reject) => {
-      let queryCargaArchivoBolsa = await ListarUtil(nameTable, {});
+      let queryCargaArchivo = await ListarUtil(nameTable, {});
       let currentFilesBD = [];
       await pool
-        .query(queryCargaArchivoBolsa)
+        .query(queryCargaArchivo)
         .then(async (result) => {
           currentFilesBD = await result.rows;
         })

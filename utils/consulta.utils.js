@@ -86,6 +86,16 @@ function ObtenerMenuAngUtil(data) {
   };
 }
 
+function ObtenerColumnasDeTablaUtil(table, params) {
+  let query = "";
+  query = `SELECT column_name 
+  FROM information_schema.columns 
+  WHERE table_schema = 'public' 
+  AND table_name  = '${table}'`;
+
+  return query;
+}
+
 function FormatearObtenerMenuAngUtil(data) {
   // console.log(data);
   let result = data.result;
@@ -211,9 +221,24 @@ function ListarUtil(table, params) {
       params.status === "status" && (query = query + " WHERE status = true");
     } else if (params?.idKey && params?.idValue) {
       query = query + ` WHERE ${params.idKey} = ${params.idValue}`;
+    } else if (params?.whereIn) {
+      let valuesAux = [];
+      map(params.whereIn.values, (itemV, indexV) => {
+        valuesAux.push(itemV);
+      });
+      query = query + ` AND ${params.whereIn.key} in (${valuesAux.join()})`;
     }
     query && (query = query + ";");
   }
+
+  if (!query.includes("WHERE")) {
+    let queryAux = query.split("");
+    queryAux.splice(query.indexOf(" AND"), 0, "WHERE");
+    queryAux.splice(query.indexOf("AND"), 4);
+    queryAux.join("");
+    query = queryAux.join("");
+  }
+
   console.log(query);
 
   return query;
@@ -326,28 +351,45 @@ function EscogerUtil(table, params) {
       map(params.body, (item, index) => {
         index = ponerComillasACamposConMayuscula(index);
         if (item !== null && typeof item !== "undefined") {
-          if (typeof item === "string") {
-            if (index === "password") {
-              index &&
-                (query =
-                  query + ` AND ${index} = crypt('${item}',gen_salt('bf'))`);
-            } else if (index === "fecha_activo") {
+          if (params?.whereIn) {
+            let valuesAux = [];
+            map(params.whereIn.values, (itemV, indexV) => {
+              valuesAux.push(itemV);
+            });
+            query =
+              query + ` AND ${params.whereIn.key} in (${valuesAux.join()})`;
+          } else {
+            if (item instanceof Date) {
               index &&
                 (query =
                   query +
                   ` AND ${index} = '${moment(item).format(
                     "YYYY-MM-DD HH:mm:ss.SSS"
                   )}'`);
-            } else {
-              index && (query = query + ` AND ${index} = '${item}'`);
+            } else if (typeof item === "string") {
+              if (index === "password") {
+                index &&
+                  (query =
+                    query + ` AND ${index} = crypt('${item}',gen_salt('bf'))`);
+              } else if (index === "fecha_activo") {
+                index &&
+                  (query =
+                    query +
+                    ` AND ${index} = '${moment(item).format(
+                      "YYYY-MM-DD HH:mm:ss.SSS"
+                    )}'`);
+              } else {
+                index && (query = query + ` AND ${index} = '${item}'`);
+              }
+            } else if (typeof item === "number") {
+              index && (query = query + ` AND ${index} = ${item}`);
+            } else if (typeof item === "boolean") {
+              index && (query = query + ` AND ${index} = ${item}`);
             }
-          } else if (typeof item === "number") {
-            index && (query = query + ` AND ${index} = ${item}`);
-          } else if (typeof item === "boolean") {
-            index && (query = query + ` AND ${index} = ${item}`);
           }
         }
       });
+
     if (!query.includes("WHERE")) {
       let queryAux = query.split("");
       queryAux.splice(query.indexOf(" AND"), 0, "WHERE");
@@ -361,6 +403,56 @@ function EscogerUtil(table, params) {
 
   console.log(query);
 
+  return query;
+}
+
+function EscogerInternoUtil(table, params) {
+  let query = "";
+  query = `SELECT ${
+    params?.select ? params.select.join(", ") : "*"
+  } FROM public."${table}"`;
+  if (params?.where) {
+    map(params.where, (item, index) => {
+      if (item?.like === true) {
+        query = query + ` AND ${item.key} like '${item.value}%'`;
+      } else if (item?.whereIn === true) {
+        let valuesAux = [];
+        map(item.valuesWhereIn, (itemV, indexV) => {
+          valuesAux.push(itemV);
+        });
+        query = query + ` AND ${item.key} in (${valuesAux.join(", ")})`;
+      } else {
+        if (typeof item.value === "string") {
+          query =
+            query +
+            ` AND ${item.key} ${item?.operator ? item.operator : "="} '${
+              item.value
+            }'`;
+        } else if (typeof item.value === "number") {
+          query =
+            query +
+            ` AND ${item.key} ${item?.operator ? item.operator : "="} ${
+              item.value
+            }`;
+        } else if (typeof item.value === "boolean") {
+          query =
+            query +
+            ` AND ${item.key} ${item?.operator ? item.operator : "="} ${
+              item.value
+            }`;
+        }
+      }
+    });
+  }
+  if (!query.includes("WHERE") && query.includes("AND")) {
+    let queryAux = query.split("");
+    queryAux.splice(query.indexOf(" AND"), 0, " WHERE");
+    queryAux.splice(query.indexOf("AND"), 4);
+    queryAux.join("");
+    query = queryAux.join("");
+  }
+  query && (query = query + ";");
+  console.log(query);
   return query;
 }
 
@@ -700,6 +792,7 @@ module.exports = {
   ListarUtil,
   BuscarUtil,
   EscogerUtil,
+  EscogerInternoUtil,
   EscogerLlaveClasificadorUtil,
   InsertarUtil,
   InsertarVariosUtil,
@@ -713,4 +806,5 @@ module.exports = {
   ObtenerMenuAngUtil,
   FormatearObtenerMenuAngUtil,
   CargarArchivoABaseDeDatosUtil,
+  ObtenerColumnasDeTablaUtil,
 };

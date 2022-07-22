@@ -1,5 +1,6 @@
 const { map } = require("lodash");
 const pool = require("../../database");
+const moment = require("moment");
 
 const {
   ListarUtil,
@@ -51,6 +52,16 @@ function ValorMaximo(req, res) {
       if (!result.rowCount || result.rowCount < 1) {
         respResultadoVacio404(res);
       } else {
+        if (result.rows[0].max === null) {
+          result = {
+            ...result,
+            rows: [
+              {
+                max: moment(item).format("YYYY-MM-DD HH:mm:ss.SSS"),
+              },
+            ],
+          };
+        }
         respResultadoCorrecto200(res, result);
       }
     }
