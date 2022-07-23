@@ -1,6 +1,6 @@
 const multer = require("multer");
 const path = require("path");
-const { map } = require("lodash");
+const { map, filter } = require("lodash");
 const fs = require("fs");
 const pool = require("../database");
 const moment = require("moment");
@@ -93,6 +93,31 @@ async function obtenerInstitucion(params) {
     });
 }
 
+function verificarArchivosRequeridos(archivosRequeridos, archivosSubidos) {
+  let arrayA = archivosRequeridos.result;
+  let arrayB = archivosSubidos;
+  let arrayResult = [];
+  let arrayResult2 = [];
+  map(arrayA, (itemR, indexR) => {
+    arrayResult2.push(itemR.archivo);
+    map(arrayB, (itemU, indexU) => {
+      if (itemR.archivo === itemU.originalname) {
+        arrayResult.push(itemR.archivo);
+      }
+    });
+  });
+  map(arrayResult, (item, index) => {
+    let myIndex = arrayResult2.indexOf(item);
+    if (myIndex !== -1) {
+      arrayResult2.splice(myIndex, 1);
+    }
+  });
+  return {
+    ok: JSON.stringify(arrayA) === JSON.stringify(arrayB),
+    missingFiles: arrayResult2,
+  };
+}
+
 async function obtenerListaArchivos(params) {
   const id_rol = params.req.user.id_rol;
   const id_usuario = params.req.user.id_usuario;
@@ -121,9 +146,11 @@ exports.validarArchivo = async (req, res, next) => {
   let nroCargaPromise = null;
   let nroCargas = [];
   let isOkUpload = null;
-  console.log(req.body);
   let codeCurrentFile = null;
   let isOkQuerys = false;
+  const currentDate = req.body.fecha_operacion
+    ? req.body.fecha_operacion.split("-").join("")
+    : moment().format("YYYYMMDD");
   try {
     let filesUploaded = req?.files; //ARCHIVOS SUBIDOS Y TEMPORALES
     let filesReaded = []; //ARCHIVOS LEIDOS Y EXISTENTES
@@ -144,9 +171,6 @@ exports.validarArchivo = async (req, res, next) => {
       .catch((err) => {
         return { err };
       });
-    const currentDate = req.body.fecha_operacion
-      ? req.body.fecha_operacion.split("-").join("")
-      : moment().format("YYYYMMDD");
 
     map(filesUploaded, async (item, index) => {
       const filePath = `./uploads/tmp/${item.originalname}`;
@@ -390,6 +414,85 @@ exports.validarArchivo = async (req, res, next) => {
                 ],
               },
             };
+          } else if (item.originalname.includes(".411")) {
+            console.log("ARCHIVO CORRECTO : 411", item.originalname);
+            codeCurrentFile = "411";
+            nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+            paramsInstrumento = {
+              table: "APS_param_tipo_instrumento",
+              params: {
+                select: ["sigla"],
+                where: [
+                  {
+                    key: "id_grupo",
+                    valuesWhereIn: [135, 138],
+                    whereIn: true,
+                  },
+                ],
+              },
+            };
+            paramsCodOperacion = {
+              table: "APS_param_tipo_operacion",
+              params: {
+                select: ["codigo_aps"],
+                // where: [
+                //   {
+                //     key: "tipo",
+                //     value: "V",
+                //   },
+                // ],
+              },
+            };
+            paramsAccionesMO = {
+              table: "APS_param_tipo_instrumento",
+              params: {
+                select: ["sigla"],
+                where: [
+                  {
+                    key: "id_grupo",
+                    valuesWhereIn: [125, 214],
+                    whereIn: true,
+                  },
+                ],
+              },
+            };
+            paramsCodMercado = {
+              table: "APS_param_lugar_negociacion",
+              params: {
+                select: ["codigo_aps"],
+                where: [
+                  {
+                    key: "id_tipo_lugar_negociacion",
+                    value: 58,
+                    operator: "<>",
+                  },
+                ],
+              },
+            };
+            paramsCalfRiesgo = {
+              table: "APS_param_clasificador_comun",
+              params: {
+                select: ["descripcion"],
+                where: [
+                  {
+                    key: "id_clasificador_comun_grupo",
+                    value: 6,
+                  },
+                ],
+              },
+            };
+            paramsCodCustodia = {
+              table: "APS_param_clasificador_comun",
+              params: {
+                select: ["sigla"],
+                where: [
+                  {
+                    key: "id_clasificador_comun_grupo",
+                    value: 9,
+                  },
+                ],
+              },
+            };
           } else {
             errors.push({
               file: item.originalname,
@@ -456,7 +559,7 @@ exports.validarArchivo = async (req, res, next) => {
               });
             });
           } else {
-            // console.log(arrayDataObject);
+            console.log(arrayDataObject);
             let arrayValidateObject = await obtenerValidaciones(
               codeCurrentFile
             );
@@ -635,7 +738,7 @@ exports.validarArchivo = async (req, res, next) => {
           where: [
             {
               key: "fecha_operacion",
-              value: moment().format("YYYY-MM-DD"),
+              value: currentDate,
             },
           ],
         });
@@ -657,9 +760,7 @@ exports.validarArchivo = async (req, res, next) => {
             errorsPromise.push({
               files: currentFiles,
               type: "QUERY SQL ERROR",
-              message: `Hubo un error al obtener el ultimo NUMERO DE CARGA en la tabla '${nameTable}' de la FECHA OPERACIÓN ${moment().format(
-                "YYYY-MM-DD"
-              )} ERROR: ${err.message}`,
+              message: `Hubo un error al obtener el ultimo NUMERO DE CARGA en la tabla '${nameTable}' de la FECHA OPERACIÓN ${currentDate} ERROR: ${err.message}`,
               err,
             });
           })
@@ -696,7 +797,7 @@ exports.validarArchivo = async (req, res, next) => {
           currentFiles.push(item.originalname);
           bodyQuery.push({
             id_rol: req.user.id_rol,
-            fecha_operacion: new Date(),
+            fecha_operacion: currentDate,
             // nombre_archivo: item.originalname,
             nro_carga:
               nroCargas.result[index] === null
@@ -758,6 +859,736 @@ exports.validarArchivo = async (req, res, next) => {
     } else {
       respArchivoErroneo415(res, errors);
     }
+  } catch (err) {
+    respErrorServidor500(res, err, "Ocurrió un error inesperado.");
+    throw err;
+  }
+};
+
+exports.validarArchivo2 = async (req, res, next) => {
+  let insertFilesPromise = null;
+  let nroCargaPromise = null;
+  let nroCargas = [];
+  let isOkUpload = null;
+  let codeCurrentFile = null;
+  let isOkQuerys = false;
+  const fechaOperacion = req.body.fecha_operacion
+    ? req.body.fecha_operacion.split("-").join("")
+    : moment().format("YYYYMMDD");
+
+  try {
+    let filesUploaded = req?.files; //ARCHIVOS SUBIDOS Y TEMPORALES
+    let filesReaded = []; //ARCHIVOS LEIDOS Y EXISTENTES
+    let errors = []; //ERRORES QUE PUEDAN APARECER EN LOS ARCHIVO
+    const clasificador = await clasificadorComun(
+      "APS_param_clasificador_comun",
+      {
+        idKey: "id_clasificador_comun_grupo",
+        idValue: 1,
+      }
+    );
+    const siglaClasificador = clasificador.resultFinal[0].sigla;
+    const archivosRequeridos = await obtenerListaArchivos({ req, res })
+      .then((response) => {
+        return { result: response.rows };
+      })
+      .catch((err) => {
+        return { err };
+      });
+    const isAllFiles = verificarArchivosRequeridos(
+      archivosRequeridos,
+      filesUploaded
+    );
+    if (isAllFiles.ok === true) {
+      map(isAllFiles.missingFiles, (item, index) => {
+        errors.push({
+          archivo: item,
+          tipo_error: "ARCHIVO FALTANTE",
+          descripcion:
+            "El archivo subido no coincide con los archivos requeridos del usuario.",
+        });
+      });
+    } else {
+      map(filesUploaded, async (item, index) => {
+        const filePath = `./uploads/tmp/${item.originalname}`;
+        const data = fs.readFileSync(filePath, "utf8");
+        let dataSplit = null;
+        if (data.includes("\r\n")) {
+          dataSplit = data.split("\r\n");
+        } else if (data.includes("\n")) {
+          dataSplit = data.split("\n");
+        } else {
+          dataSplit = null;
+        }
+        if (!item.originalname.includes(fechaOperacion)) {
+          errors.push({
+            archivo: item.originalname,
+            tipo_error: "NOMBRE ARCHIVO ERRONEO",
+            descripcion:
+              "El nombre del archivo no coincide con la fecha de operación.",
+          });
+        } else if (data.length === 0) {
+          errors.push({
+            archivo: item.originalname,
+            tipo_error: "CONTENIDO VACIO",
+            descripcion: "El contenido del archivo esta vacío.",
+          });
+        } else if (dataSplit === null) {
+          errors.push({
+            archivo: item.originalname,
+            tipo_error: "FORMATO DE INFORMACION ERRONEO",
+            mensaje:
+              "Ocurrió un error debido al formato del contenido del archivo.",
+          });
+        } else {
+          isOkQuerys = true;
+          let paramsInstrumento = null;
+          let paramsCodOperacion = null;
+          let paramsAccionesMO = null;
+          let paramsCodMercado = null;
+          let paramsCalfRiesgo = null;
+          let paramsCodCustodia = null;
+          let headers = null;
+          console.log("BEFORE IF", item.originalname);
+          if (item.originalname.includes("K.")) {
+            console.log("ARCHIVO CORRECTO : K", item.originalname);
+            let headers = await formatoArchivo("k");
+            let arrayDataObject = formatearDatosEInsertarCabeceras(
+              headers,
+              dataSplit
+            );
+            if (arrayDataObject?.err === true) {
+              map(arrayDataObject.errors, (itemError, indexError) => {
+                errors.push({
+                  file: item.originalname,
+                  type: "FILE CONTENT ERROR",
+                  message: itemError.msg,
+                });
+              });
+            } else {
+              let arrayValidateObject = obtenerValidaciones("k");
+              map(arrayDataObject, async (item2, index2) => {
+                map(arrayValidateObject, async (item3, index3) => {
+                  let value = item2[item3.columnName];
+                  let columnName = item3.columnName;
+                  let pattern = item3.pattern;
+                  let required = item3.required;
+                  let funct = item3.function;
+
+                  if (required === true) {
+                    if (!item2[item3.columnName]) {
+                      errors.push({
+                        file: item.originalname,
+                        type: "VALUE NULL OR EMPTY",
+                        message: `El valor esta vacio o existe un error en el contenido del archivo, en la columna de '${columnName}' que contiene el valor de: '${value}'`,
+                        value,
+                        column: columnName,
+                        row: index2,
+                      });
+                    } else {
+                      let match = value.match(pattern);
+                      if (match === null) {
+                        errors.push({
+                          file: item.originalname,
+                          type: "VALUE INCORRECT",
+                          message: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}'`,
+                          value,
+                          column: columnName,
+                          row: index2,
+                        });
+                      }
+                      if (columnName === "fecha") {
+                        if (value !== "20" + fileDate) {
+                          errors.push({
+                            file: item.originalname,
+                            type: "VALUE INCORRECT",
+                            message: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}' el cual tiene que coincidir con la fecha del nombre del archivo`,
+                            value,
+                            column: columnName,
+                            row: index2,
+                          });
+                        }
+                      }
+                      if (funct === "clasificadorcomun") {
+                        if (value !== siglaClasificador) {
+                          errors.push({
+                            file: item.originalname,
+                            type: "VALUE INCORRECT",
+                            message: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}', el cual tiene que coincidir con la sigla '${siglaClasificador}' de Clasificador Común para la Bolsa de valores`,
+                            value,
+                            column: columnName,
+                            row: index2,
+                          });
+                        }
+                      } else if (funct === "tipoinstrumento") {
+                        let errInstrumento = true;
+                        map(instrumento.resultFinal, (item4, index4) => {
+                          if (value === item4.sigla) {
+                            errInstrumento = false;
+                          }
+                        });
+                        if (errInstrumento === true) {
+                          errors.push({
+                            file: item.originalname,
+                            type: "VALUE INCORRECT",
+                            message: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}', el cual tiene que coincidir con alguna sigla de Tipo Instrumento para la Bolsa de valores`,
+                            value,
+                            column: columnName,
+                            row: index2,
+                          });
+                        }
+                      } else if (funct === "marcacion") {
+                        let marcacion = await tipoMarcacion({
+                          montoNegociado: item2.monto,
+                          montoMinimo: item2.monto_minimo,
+                        });
+                        if (!marcacion.toString().includes(value)) {
+                          errors.push({
+                            file: item.originalname,
+                            type: "VALUE INCORRECT",
+                            message: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}', el cual tiene que coincidir con '${marcacion}' de Tipo Marcación para la Bolsa de valores`,
+                            value,
+                            column: columnName,
+                            row: index2,
+                          });
+                        }
+                      }
+                    }
+                  }
+                });
+              });
+            }
+          } else if (item.originalname.includes("L.")) {
+          } else if (item.originalname.includes("N.")) {
+          } else if (item.originalname.includes("P.")) {
+          } else if (item.originalname.includes(".413")) {
+            console.log("ARCHIVO CORRECTO : 413", item.originalname);
+            codeCurrentFile = "413";
+            nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+            headers = await formatoArchivo(codeCurrentFile);
+            paramsInstrumento = {
+              table: "APS_param_tipo_instrumento",
+              params: {
+                select: ["sigla"],
+                where: [
+                  {
+                    key: "id_grupo",
+                    valuesWhereIn: [125, 214],
+                    whereIn: true,
+                  },
+                ],
+              },
+            };
+            paramsCodOperacion = {
+              table: "APS_param_tipo_operacion",
+              params: {
+                select: ["codigo_aps"],
+                where: [
+                  {
+                    key: "tipo",
+                    value: "V",
+                  },
+                ],
+              },
+            };
+            paramsAccionesMO = {
+              table: "APS_param_tipo_instrumento",
+              params: {
+                select: ["sigla"],
+                where: [
+                  {
+                    key: "id_grupo",
+                    valuesWhereIn: [125, 214],
+                    whereIn: true,
+                  },
+                ],
+              },
+            };
+            paramsCodMercado = {
+              table: "APS_param_lugar_negociacion",
+              params: {
+                select: ["codigo_aps"],
+                where: [
+                  {
+                    key: "id_tipo_lugar_negociacion",
+                    value: 148,
+                    operator: "<>",
+                  },
+                ],
+              },
+            };
+            paramsCalfRiesgo = {
+              table: "APS_param_clasificador_comun",
+              params: {
+                select: ["descripcion"],
+                where: [
+                  {
+                    key: "id_clasificador_comun_grupo",
+                    value: 5,
+                  },
+                ],
+              },
+            };
+            paramsCodCustodia = {
+              table: "APS_param_clasificador_comun",
+              params: {
+                select: ["sigla"],
+                where: [
+                  {
+                    key: "id_clasificador_comun_grupo",
+                    value: 9,
+                  },
+                ],
+              },
+            };
+          } else if (item.originalname.includes(".411")) {
+            console.log("ARCHIVO CORRECTO : 411", item.originalname);
+            codeCurrentFile = "411";
+            nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+            headers = await formatoArchivo(codeCurrentFile);
+            paramsInstrumento = {
+              table: "APS_param_tipo_instrumento",
+              params: {
+                select: ["sigla"],
+                where: [
+                  {
+                    key: "id_grupo",
+                    valuesWhereIn: [135, 138],
+                    whereIn: true,
+                  },
+                ],
+              },
+            };
+            paramsCodOperacion = {
+              table: "APS_param_tipo_operacion",
+              params: {
+                select: ["codigo_aps"],
+                // where: [
+                //   {
+                //     key: "tipo",
+                //     value: "V",
+                //   },
+                // ],
+              },
+            };
+            paramsAccionesMO = {
+              table: "APS_param_tipo_instrumento",
+              params: {
+                select: ["sigla"],
+                where: [
+                  {
+                    key: "id_grupo",
+                    valuesWhereIn: [125, 214],
+                    whereIn: true,
+                  },
+                ],
+              },
+            };
+            paramsCodMercado = {
+              table: "APS_param_lugar_negociacion",
+              params: {
+                select: ["codigo_aps"],
+                where: [
+                  {
+                    key: "id_tipo_lugar_negociacion",
+                    value: 58,
+                    operator: "<>",
+                  },
+                ],
+              },
+            };
+            paramsCalfRiesgo = {
+              table: "APS_param_clasificador_comun",
+              params: {
+                select: ["descripcion"],
+                where: [
+                  {
+                    key: "id_clasificador_comun_grupo",
+                    value: 6,
+                  },
+                ],
+              },
+            };
+            paramsCodCustodia = {
+              table: "APS_param_clasificador_comun",
+              params: {
+                select: ["sigla"],
+                where: [
+                  {
+                    key: "id_clasificador_comun_grupo",
+                    value: 9,
+                  },
+                ],
+              },
+            };
+          } else {
+            errors.push({
+              archivo: item.originalname,
+              tipo_error: "NOMBRE ARCHIVO ERRONEO",
+              descripcion:
+                "El nombre del archivo no cumple con el formato estandar (no se conoce que tipo de archivo es).",
+            });
+          }
+          //#region VALIDADORES
+          const instrumento = paramsInstrumento
+            ? await tipoInstrumento(
+                paramsInstrumento.table,
+                paramsInstrumento.params
+              )
+            : null;
+          const codOperacion = paramsCodOperacion
+            ? await codigoOperacion(
+                paramsCodOperacion.table,
+                paramsCodOperacion.params
+              )
+            : null;
+          const accionesMO = paramsAccionesMO
+            ? await accionesMonedaOriginal(
+                paramsAccionesMO.table,
+                paramsAccionesMO.params
+              )
+            : null;
+          const codMercado = paramsCodMercado
+            ? await codigoMercado(
+                paramsCodMercado.table,
+                paramsCodMercado.params
+              )
+            : null;
+          const calfRiesgo = paramsCalfRiesgo
+            ? await calificacionRiesgo(
+                paramsCalfRiesgo.table,
+                paramsCalfRiesgo.params
+              )
+            : null;
+          const codCustodia = paramsCodCustodia
+            ? await codigoCustodia(
+                paramsCodCustodia.table,
+                paramsCodCustodia.params
+              )
+            : null;
+
+          //#endregion
+
+          // console.log("instrumento", instrumento);
+          // console.log("codOperacion", codOperacion);
+          // console.log("accionesMO", accionesMO);
+          // console.log("codMercado", codMercado);
+          // console.log("calfRiesgo", calfRiesgo);
+          // console.log("codCustodia", codCustodia);
+          let arrayDataObject = await formatearDatosEInsertarCabeceras(
+            headers,
+            dataSplit
+          );
+          // console.log(arrayDataObject);
+          console.log(`${item.originalname}`, arrayDataObject);
+
+          if (arrayDataObject?.err === true) {
+            map(arrayDataObject.errors, (itemError, indexError) => {
+              errors.push({
+                archivo: item.originalname,
+                tipo_error: "FILE CONTENT ERROR",
+                descripcion: itemError.msg,
+              });
+            });
+          } else {
+            let arrayValidateObject = await obtenerValidaciones(
+              codeCurrentFile
+            );
+            map(arrayDataObject, async (item2, index2) => {
+              map(arrayValidateObject, async (item3, index3) => {
+                let value = item2[item3.columnName];
+                let columnName = item3.columnName;
+                let pattern = item3.pattern;
+                let required = item3.required;
+                let funct = item3.function;
+
+                if (required === true) {
+                  if (!item2[item3.columnName]) {
+                    errors.push({
+                      archivo: item.originalname,
+                      tipo_error: "VALOR EN NULO O VACIO",
+                      descripcion: `El valor esta vacio o existe un error no controlado en el contenido del archivo, en la columna de '${columnName}' que contiene el valor de: '${value}'`,
+                      valor: value,
+                      columna: columnName,
+                      fila: index2,
+                    });
+                  } else {
+                    let match = value.match(pattern);
+                    if (match === null) {
+                      errors.push({
+                        archivo: item.originalname,
+                        tipo_error: "VALOR INCORRECTO",
+                        descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}'`,
+                        valor: value,
+                        columna: columnName,
+                        fila: index2,
+                      });
+                    }
+                    if (columnName === "fecha_operacion") {
+                      if (value.includes(fechaOperacion)) {
+                        errors.push({
+                          archivo: item.originalname,
+                          tipo_error: "VALOR INCORRECTO",
+                          descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}' el cual tiene que coincidir con la fecha del nombre del archivo`,
+                          valor: value,
+                          columna: columnName,
+                          fila: index2,
+                        });
+                      }
+                    }
+                    if (funct === "clasificadorcomun") {
+                      if (value !== siglaClasificador) {
+                        errors.push({
+                          archivo: item.originalname,
+                          tipo_error: "VALOR INCORRECTO",
+                          descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}', el cual tiene que coincidir con la sigla '${siglaClasificador}' de Clasificador Común para la Bolsa de valores`,
+                          valor: value,
+                          columna: columnName,
+                          fila: index2,
+                        });
+                      }
+                    } else if (funct === "tipoInstrumento") {
+                      let errFunction = true;
+                      map(instrumento.resultFinal, (item4, index4) => {
+                        if (value === item4.sigla) {
+                          errFunction = false;
+                        }
+                      });
+                      if (errFunction === true) {
+                        errors.push({
+                          archivo: item.originalname,
+                          tipo_error: "VALOR INCORRECTO",
+                          descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}', el cual tiene que coincidir con alguna sigla de Tipo Instrumento para la Bolsa de valores`,
+                          valor: value,
+                          columna: columnName,
+                          fila: index2,
+                        });
+                      }
+                    } else if (funct === "marcacion") {
+                      let marcacion = await tipoMarcacion({
+                        montoNegociado: item2.monto,
+                        montoMinimo: item2.monto_minimo,
+                      });
+                      if (!marcacion.toString().includes(value)) {
+                        errors.push({
+                          archivo: item.originalname,
+                          tipo_error: "VALOR INCORRECTO",
+                          descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}', el cual tiene que coincidir con '${marcacion}' de Tipo Marcación para la Bolsa de valores`,
+                          valor: value,
+                          columna: columnName,
+                          fila: index2,
+                        });
+                      }
+                    } else if (funct === "accionesMonedaOriginal") {
+                      let errFunction = true;
+                      map(codOperacion.resultFinal, (item4, index4) => {
+                        if (value === item4.codigo_aps) {
+                          errFunction = false;
+                        }
+                      });
+                      if (errFunction === true) {
+                        errors.push({
+                          archivo: item.originalname,
+                          tipo_error: "VALOR INCORRECTO",
+                          descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}', el cual tiene que coincidir con alguna sigla de Tipo Instrumento para la Bolsa de valores`,
+                          valor: value,
+                          columna: columnName,
+                          fila: index2,
+                        });
+                      }
+                    } else if (funct === "codigoMercado") {
+                      let errFunction = true;
+                      map(codMercado.resultFinal, (item4, index4) => {
+                        if (value === item4.codigo_aps) {
+                          errFunction = false;
+                        }
+                      });
+                      if (errFunction === true) {
+                        errors.push({
+                          archivo: item.originalname,
+                          tipo_error: "VALOR INCORRECTO",
+                          descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}', el cual tiene que coincidir con alguna sigla de Tipo Instrumento para la Bolsa de valores`,
+                          valor: value,
+                          columna: columnName,
+                          fila: index2,
+                        });
+                      }
+                    } else if (funct === "calificacionRiesgo") {
+                      let errFunction = true;
+                      map(calfRiesgo.resultFinal, (item4, index4) => {
+                        if (value === item4.descripcion) {
+                          errFunction = false;
+                        }
+                      });
+                      if (errFunction === true) {
+                        errors.push({
+                          archivo: item.originalname,
+                          tipo_error: "VALOR INCORRECTO",
+                          descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}', el cual tiene que coincidir con alguna sigla de Tipo Instrumento para la Bolsa de valores`,
+                          valor: value,
+                          columna: columnName,
+                          fila: index2,
+                        });
+                      }
+                    } else if (funct === "codigoCustodia") {
+                      let errFunction = true;
+                      map(codCustodia.resultFinal, (item4, index4) => {
+                        if (value === item4.sigla) {
+                          errFunction = false;
+                        }
+                      });
+                      if (errFunction === true) {
+                        errors.push({
+                          archivo: item.originalname,
+                          tipo_error: "VALOR INCORRECTO",
+                          descripcion: `El contenido del archivo no cumple con el formato correcto, en la columna de '${columnName}' que contiene el valor de: '${value}' en la fila '${index2}', el cual tiene que coincidir con alguna sigla de Tipo Instrumento para la Bolsa de valores`,
+                          valor: value,
+                          columna: columnName,
+                          fila: index2,
+                        });
+                      }
+                    }
+                  }
+                }
+              });
+            });
+          }
+        }
+        filesReaded.push(dataSplit);
+      });
+    }
+    nroCargaPromise = new Promise(async (resolve, reject) => {
+      let result = [];
+      let errorsPromise = [];
+      let nroCarga = "";
+      map(req.files, async (item, index) => {
+        queryNroCarga = ValorMaximoDeCampoUtil(nameTable, {
+          fieldMax: "nro_carga",
+          where: [
+            {
+              key: "fecha_operacion",
+              value: fechaOperacion,
+            },
+          ],
+        });
+        await pool
+          .query(queryNroCarga)
+          .then((resultNroCarga) => {
+            if (!resultNroCarga.rowCount || resultNroCarga.rowCount < 1) {
+              nroCarga = 1;
+            } else {
+              nroCarga =
+                resultNroCarga.rows[0]?.max !== null
+                  ? resultNroCarga.rows[0]?.max
+                  : null;
+            }
+            result.push(nroCarga);
+          })
+          .catch((err) => {
+            console.log(err);
+            errorsPromise.push({
+              files: currentFiles,
+              type: "QUERY SQL ERROR",
+              message: `Hubo un error al obtener el ultimo NUMERO DE CARGA en la tabla '${nameTable}' de la FECHA OPERACIÓN ${fechaOperacion} ERROR: ${err.message}`,
+              err,
+            });
+          })
+          .finally(() => {
+            if (index === req.files.length - 1) {
+              resolve({ result, errorsPromise });
+            }
+          });
+      });
+    });
+
+    nroCargas = await nroCargaPromise.then((response) => {
+      if (response.errorsPromise.length >= 1) {
+        errors = [...errors, response.errorsPromise];
+        return null;
+      } else {
+        return response;
+      }
+    });
+
+    if (nroCargas !== null) {
+      insertFilesPromise = new Promise(async (resolve, reject) => {
+        let queryFiles = "";
+        let bodyQuery = [];
+        let currentFiles = [];
+        let resultsPromise = [];
+        let errorsPromise = [];
+        if (errors.length >= 1) {
+          isOkUpload = false;
+        } else {
+          isOkUpload = true;
+        }
+        map(req.files, (item, index) => {
+          currentFiles.push(item.originalname);
+          bodyQuery.push({
+            id_rol: req.user.id_rol,
+            fecha_operacion: fechaOperacion,
+            // nombre_archivo: item.originalname,
+            nro_carga:
+              nroCargas.result[index] === null
+                ? 1
+                : nroCargas.result[index] + 1,
+            fecha_carga: new Date(),
+            id_usuario: req.user.id_usuario,
+            cargado: isOkUpload,
+          });
+        });
+        queryFiles = InsertarVariosUtil(nameTable, {
+          body: bodyQuery,
+          returnValue: ["id_carga_archivos"],
+        });
+        await pool
+          .query(queryFiles)
+          .then(async (resultFiles) => {
+            resultsPromise.push({
+              files: currentFiles,
+              message:
+                resultFiles.rowCount >= 1
+                  ? `Los archivos fueron insertado correctamente a la tabla '${nameTable}'`
+                  : `El archivo fue insertado correctamente a la tabla '${nameTable}'`,
+              result: {
+                rowsUpdate: resultFiles.rows,
+                rowCount: resultFiles.rowCount,
+              },
+            });
+          })
+          .catch((err) => {
+            console.log("ERR", err);
+            errorsPromise.push({
+              files: currentFiles,
+              type: "QUERY SQL ERROR",
+              message: `Hubo un error al insertar datos en la tabla '${nameTable}' ERROR: ${err.message}`,
+              err,
+            });
+          })
+          .finally(() => {
+            resolve({ resultsPromise, errorsPromise, bodyQuery });
+          });
+      });
+      insertFilesPromise.then((response) => {
+        // console.log(response);
+        if (errors.length >= 1 || response.errorsPromise.length >= 1) {
+          errors = [...errors, response.errorsPromise];
+          respArchivoErroneo415(res, errors);
+        } else {
+          req.errors = [...errors, response.errorsPromise];
+          req.results = response.resultsPromise;
+          req.returnsValues = response.resultsPromise[0]?.result?.rowsUpdate;
+          req.filesReaded = filesReaded;
+          req.filesUploadedBD = response.bodyQuery;
+          req.codeCurrentFile = codeCurrentFile;
+          req.nameTableAud = nameTable;
+          // next();
+        }
+      });
+    } else {
+      respArchivoErroneo415(res, errors);
+    }
+    console.log(errors);
   } catch (err) {
     respErrorServidor500(res, err, "Ocurrió un error inesperado.");
     throw err;

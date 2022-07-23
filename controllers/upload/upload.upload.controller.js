@@ -562,6 +562,28 @@ async function CargarArchivo2(req, res) {
     });
 }
 
+async function CargarArchivo3(req, res) {
+  let idCargaArchivos = null;
+  let errorsFinal = [];
+  let filesReaded = req.filesReaded;
+  let filesUploadedBD = req.filesUploadedBD;
+  let previousResults = req.results;
+  let previousErrors = req.errors;
+  let returnsValues = req.returnsValues;
+  let resultFinal = [];
+  let bodyPartialQuery = [];
+  let bodyFinalQuery = [];
+  let uploadPromise = null;
+  let tableFile = null;
+  let paramsFile = null;
+  let queryUpdateForError = "";
+  // console.log("filesUploadedBD", filesUploadedBD);
+  // console.log("previousResults", previousResults);
+  // console.log("previousErrors", previousErrors);
+  // console.log("returnsValues", returnsValues);
+  // console.log("ESTOY EN CARGAR ARCHIVO 2");
+}
+
 //FUNCION PARA OBTENER TODOS LOS ACTIVIDAD ECONOMICA DE SEGURIDAD
 function Listar(req, res) {
   const params = {
@@ -733,4 +755,5 @@ module.exports = {
   Deshabilitar,
   CargarArchivo,
   CargarArchivo2,
+  CargarArchivo3,
 };

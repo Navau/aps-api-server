@@ -51,7 +51,7 @@ async function obtenerCabeceras(table) {
 }
 
 async function formatoArchivo(type) {
-  console.log(type);
+  console.log("TYPE", type);
   let headers = null;
   if (type === "k") {
     return {
@@ -69,11 +69,73 @@ async function formatoArchivo(type) {
     await obtenerCabeceras("APS_seguro_archivo_413")
       .then((response) => {
         let resultAux = [];
-        console.log(response.rows);
         map(response.rows, (item, index) => {
-          if (index >= 1) {
-            resultAux.push(item.column_name);
-          }
+          resultAux.push(item.column_name);
+        });
+        headers = resultAux;
+      })
+      .catch((err) => {
+        headers = { err };
+      });
+    return headers;
+  } else if (type === "411") {
+    await obtenerCabeceras("APS_seguro_archivo_411")
+      .then(async (response) => {
+        let resultAux = [];
+        map(response.rows, (item, index) => {
+          resultAux.push(item.column_name);
+        });
+        headers = resultAux;
+      })
+      .catch((err) => {
+        headers = { err };
+      });
+    return headers;
+  } else if (type === "441") {
+    await obtenerCabeceras("APS_seguro_archivo_441")
+      .then(async (response) => {
+        let resultAux = [];
+        map(response.rows, (item, index) => {
+          resultAux.push(item.column_name);
+        });
+        headers = resultAux;
+      })
+      .catch((err) => {
+        headers = { err };
+      });
+    return headers;
+  } else if (type === "44C") {
+    await obtenerCabeceras("APS_seguro_archivo_44C")
+      .then((response) => {
+        let resultAux = [];
+        map(response.rows, (item, index) => {
+          resultAux.push(item.column_name);
+        });
+        headers = resultAux;
+      })
+      .catch((err) => {
+        headers = { err };
+      });
+    return headers;
+  } else if (type === "451") {
+    await obtenerCabeceras("APS_seguro_archivo_451")
+      .then((response) => {
+        let resultAux = [];
+        map(response.rows, (item, index) => {
+          resultAux.push(item.column_name);
+        });
+        headers = resultAux;
+      })
+      .catch((err) => {
+        headers = { err };
+      });
+    return headers;
+  } else if (type === "481") {
+    await obtenerCabeceras("APS_seguro_archivo_481")
+      .then((response) => {
+        let resultAux = [];
+        map(response.rows, (item, index) => {
+          resultAux.push(item.column_name);
         });
         headers = resultAux;
       })
@@ -195,21 +257,21 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "precio_negociacion",
-        pattern: /^(\d{1,10})(\.\d{2,2}){0,1}$/,
+        pattern: /^(\d{1,10})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "precio_total_mo",
-        pattern: /^(\d{1,10})(\.\d{2,2}){0,1}$/,
+        pattern: /^(\d{1,10})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: "accionesMonedaOriginal",
       },
       {
         columnName: "precio_total_bs",
-        pattern: /^(\d{1,10})(\.\d{2,2}){0,1}$/,
+        pattern: /^(\d{1,10})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
@@ -223,7 +285,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "precio_unitario",
-        pattern: /^(\d{1,10})(\.\d{2,2}){0,1}$/,
+        pattern: /^(\d{1,10})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
@@ -255,20 +317,20 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "codigo_operacion",
-        pattern: /^[A-Za-z0-9]{1,1}$/,
+        pattern: /^[A-Za-z]{1,1}$/,
         positveNegative: true,
         required: true,
         function: "codigoOperacion",
       },
       {
-        columnName: "instrumento",
-        pattern: /^[A-Za-z0-9]{0,3}$/,
+        columnName: "tipo_instrumento",
+        pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: true,
         required: true,
-        function: "instrumento",
+        function: "tipoInstrumento",
       },
       {
-        columnName: "Serie",
+        columnName: "serie",
         pattern: /^[A-Za-z0-9]{5,23}$/,
         positveNegative: true,
         required: true,
@@ -283,49 +345,49 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "tasa_negociacion",
-        pattern: /^(\d{1,12})(\.\d{8,8}){0,1}$/,
+        pattern: /^(\d{1,12})(\.\d{8,8}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "tasa_relevante_valoracion",
-        pattern: /^(\d{1,12})(\.\d{8,8}){0,1}$/,
+        pattern: /^(\d{1,12})(\.\d{8,8}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "precio_negociacion_mo",
-        pattern: /^(\d{1,10})(\.\d{2,2}){0,1}$/,
+        pattern: /^(\d{1,10})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "precio_total_mo",
-        pattern: /^(\d{1,10})(\.\d{2,2}){0,1}$/,
+        pattern: /^(\d{1,10})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "precio_total_bs",
-        pattern: /^(\d{1,10})(\.\d{2,2}){0,1}$/,
+        pattern: /^(\d{1,10})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "codigo_mercado",
-        pattern: /^[A-Za-z0-9]{0,3}$/,
+        pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: true,
         required: true,
-        function: "codigoMercadoFunction",
+        function: "codigoMercado",
       },
       {
         columnName: "precio_unitario",
-        pattern: /^(\d{1,10})(\.\d{2,2}){0,1}$/,
+        pattern: /^(\d{1,10})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
@@ -335,14 +397,298 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^[A-Za-z0-9]{1,3}$/,
         positveNegative: true,
         required: true,
-        function: "calificacionRiesgoFunction",
+        function: "calificacionRiesgo",
       },
       {
         columnName: "codigo_custodia",
+        pattern: /^[A-Za-z]{3,3}$/,
+        positveNegative: true,
+        required: true,
+        function: "codigoCustodia",
+      },
+    ];
+  } else if (typeFile == "441") {
+    result = [
+      {
+        columnName: "tipo_instrumento",
+        pattern: /^[A-Za-z0-9]{3,3}$/,
+        positveNegative: true,
+        required: true,
+        function: "tipoInstrumento",
+      },
+      {
+        columnName: "serie",
+        pattern: /^[A-Za-z0-9]{5,23}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "fecha_vencimiento",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        positveNegative: false,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "fecha_emision",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        positveNegative: false,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "precio_nominal_mo",
+        pattern: /^(\d{1,9})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "precio_nominal_bs",
+        pattern: /^(\d{1,9})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "tasa_nominal_emision",
+        pattern: /^(\d{1,2})(\.\d{8,8}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "plazo_emision_valor",
+        pattern:
+          /^([0-9]\d{4}|\d[0-9]\d{3}|\d{2}[0-9]\d{2}|\d{3}[0-9]\d|\d{4}[0-9])$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "periodo_pago_cupones",
+        pattern:
+          /^([D,M,A]\d{4}|\d[0-9]\d{3}|\d{2}[0-9]\d{2}|\d{3}[0-9]\d|\d{4}[0-9])$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "cantidad_pagos",
+        pattern: /^[0-9]\d{0,2}(?:\,\d{1,3})?$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "tasa_interes_variable",
+        pattern: /^([0-9]{0,2})(\.[0-9]{0,8})?$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+    ];
+  } else if (typeFile == "44C") {
+    result = [
+      {
+        columnName: "tipo_instrumento",
         pattern: /^[A-Za-z0-9]{0,3}$/,
         positveNegative: true,
         required: true,
-        function: "codigoCustodiaFunction",
+        function: "tipoInstrumento",
+      },
+      {
+        columnName: "serie",
+        pattern: /^[A-Za-z0-9]{5,23}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "nro_pago",
+        pattern: /^\d{1,3}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "fecha_pago",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        positveNegative: false,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "pago_intereses",
+        pattern: /^(\d{1,9})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "amortizacion_capital",
+        pattern: /^(\d{1,9})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "flujo_total",
+        pattern: /^(\d{1,9})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "saldo_amortizar",
+        pattern: /^(\d{1,9})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+    ];
+  } else if (typeFile == "451") {
+    result = [
+      {
+        columnName: "tipo_cuenta",
+        pattern: /^[A-Za-z]{0,3}$/,
+        positveNegative: true,
+        required: true,
+        function: "tipoCuenta",
+      },
+      {
+        columnName: "sigla_entidad_financiera",
+        pattern: /^[A-Za-z]{0,3}$/,
+        positveNegative: true,
+        required: true,
+        function: "siglaEntidadFinanciera",
+      },
+      {
+        columnName: "nro_cuenta_entidad",
+        pattern: /^[A-Za-z0-9]{5,20}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "moneda",
+        pattern: /^[A-Za-z]{0,3}$/,
+        positveNegative: true,
+        required: true,
+        function: "moneda",
+      },
+      {
+        columnName: "saldo_mo_original",
+        pattern: /^(\d{1,9})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "total_saldo_bs",
+        pattern: /^(\d{1,9})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+    ];
+  } else if (typeFile == "481") {
+    result = [
+      {
+        columnName: "tipo_instrumento",
+        pattern: /^[A-Za-z]{0,3}$/,
+        positveNegative: true,
+        required: true,
+        function: "tipoInstrumento",
+      },
+      {
+        columnName: "serie",
+        pattern: /^[A-Za-z]{0,3}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "codigo_valoracion",
+        pattern: /^[A-Za-z]{0,10}$/,
+        positveNegative: true,
+        required: true,
+        function: "codigoValoracion",
+      },
+      {
+        columnName: "tasa_relevante_operacion",
+        pattern: /^([0-9]{0,2})(\.[0-9]{0,8})?$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "cantidad",
+        pattern: /^\d{1,7}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "plazo_valor",
+        pattern: /^\d{1,7}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "plazo_economico",
+        pattern: /^\d{1,7}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "precio_unitario_mo",
+        pattern: /^(\d{1,9})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "precio_total_mo",
+        pattern: /^(\d{1,9})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "codigo_mo",
+        pattern: /^[A-Za-z]{1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "codigoMonedaOriginal",
+      },
+      {
+        columnName: "precio_total_bs",
+        pattern: /^(\d{1,9})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "calificacion_riesgo",
+        pattern: /^[A-Za-z0-9]{0,3}$/,
+        positveNegative: true,
+        required: true,
+        function: "calificacionRiesgoGrande",
+      },
+      {
+        columnName: "fecha_adquisicion",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        positveNegative: false,
+        required: true,
+        function: null,
       },
     ];
   }
@@ -353,6 +699,14 @@ async function obtenerValidaciones(typeFile) {
 function formatearDatosEInsertarCabeceras(headers, dataSplit) {
   let arrayDataObject = [];
   let errors = [];
+  headers.splice(0, 1); // ELIMINAR ID DE TABLA
+
+  map(["id_carga_archivos"], (item, index) => {
+    let myIndex = headers.indexOf(item);
+    if (myIndex !== -1) {
+      headers.splice(myIndex, 1);
+    }
+  }); // ELIMINAR ID CARGA ARCHIVOS
 
   map(dataSplit, (item, index) => {
     let rowSplit = item.split(",");
