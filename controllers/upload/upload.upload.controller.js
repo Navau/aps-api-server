@@ -343,6 +343,8 @@ async function CargarArchivo2(req, res) {
   let previousResults = req.results;
   let previousErrors = req.errors;
   let returnsValues = req.returnsValues;
+  let codeCurrentFile = req.codeCurrentFile;
+  let nameTable = req.nameTableAud;
   let resultFinal = [];
   let bodyPartialQuery = [];
   let bodyFinalQuery = [];
@@ -350,11 +352,11 @@ async function CargarArchivo2(req, res) {
   let tableFile = null;
   let paramsFile = null;
   let queryUpdateForError = "";
-  // console.log("filesUploadedBD", filesUploadedBD);
-  // console.log("previousResults", previousResults);
-  // console.log("previousErrors", previousErrors);
-  // console.log("returnsValues", returnsValues);
-  // console.log("ESTOY EN CARGAR ARCHIVO 2");
+  console.log("filesUploadedBD", filesUploadedBD);
+  console.log("previousResults", previousResults);
+  console.log("previousErrors", previousErrors);
+  console.log("returnsValues", returnsValues);
+  console.log("ESTOY EN CARGAR ARCHIVO 2");
   uploadPromise = new Promise(async (resolve, reject) => {
     let errors = [];
     // let queryCurrentFilesBD = ListarUtil(nameTable, {});

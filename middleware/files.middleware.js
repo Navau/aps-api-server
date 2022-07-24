@@ -1019,8 +1019,6 @@ exports.validarArchivo2 = async (req, res, next) => {
             headers,
             dataSplit
           );
-          // console.log(arrayDataObject);
-          // console.log(`${item.originalname}`, arrayDataObject);
 
           if (arrayDataObject?.err === true) {
             map(arrayDataObject.errors, (itemError, indexError) => {
@@ -1375,18 +1373,13 @@ exports.validarArchivo2 = async (req, res, next) => {
                     }
                   );
                   insertErorrsPromise
-                    .then((response) => {
-                      // console.log(response);
-                    })
+                    .then((response) => {})
                     .catch((err) => {
                       respErrorServidor500(
                         res,
                         err,
                         "Ocurrió un error inesperado."
                       );
-                    })
-                    .finally(() => {
-                      // console.log("finally");
                     });
                 } else {
                   req.errors = [...errors, response.errorsPromise];
@@ -1397,7 +1390,7 @@ exports.validarArchivo2 = async (req, res, next) => {
                   req.filesUploadedBD = response.bodyQuery;
                   req.codeCurrentFile = codeCurrentFile;
                   req.nameTableAud = nameTable;
-                  // next();
+                  next();
                 }
               })
               .finally(() => {});
