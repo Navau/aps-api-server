@@ -921,7 +921,7 @@ exports.validarArchivo2 = async (req, res, next) => {
       }
     });
 
-    if (isAllFiles.ok === true) {
+    if (isAllFiles.ok === false) {
       map(isAllFiles.missingFiles, (item, index) => {
         errors.push({
           archivo: item,

@@ -226,18 +226,18 @@ function ListarUtil(table, params) {
       map(params.whereIn.values, (itemV, indexV) => {
         valuesAux.push(itemV);
       });
-      query = query + ` AND ${params.whereIn.key} in (${valuesAux.join()})`;
+      query = query + ` WHERE ${params.whereIn.key} in (${valuesAux.join()})`;
     }
     query && (query = query + ";");
   }
 
-  // if (!query.includes("WHERE")) {
-  //   let queryAux = query.split("");
-  //   queryAux.splice(query.indexOf(" AND"), 0, "WHERE");
-  //   queryAux.splice(query.indexOf("AND"), 4);
-  //   queryAux.join("");
-  //   query = queryAux.join("");
-  // }
+  if (!query.includes("WHERE") && query.includes("AND")) {
+    let queryAux = query.split("");
+    queryAux.splice(query.indexOf(" AND"), 0, "WHERE");
+    queryAux.splice(query.indexOf("AND"), 4);
+    queryAux.join("");
+    query = queryAux.join("");
+  }
 
   console.log(query);
 
