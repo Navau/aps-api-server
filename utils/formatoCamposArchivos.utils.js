@@ -34,6 +34,200 @@ const {
 } = require("../utils/respuesta.utils");
 const { SelectInnerJoinSimple } = require("../utils/multiConsulta.utils");
 
+async function obtenerInformacionDeArchivo(nameFile) {
+  let result = {};
+  let codeCurrentFile = null;
+  let nameTable = null;
+  let paramsInstrumento = null;
+  let paramsCodOperacion = null;
+  let paramsAccionesMO = null;
+  let paramsCodMercado = null;
+  let paramsCalfRiesgo = null;
+  let paramsCodCustodia = null;
+  let headers = null;
+  if (nameFile.includes("K.")) {
+    console.log("ARCHIVO CORRECTO : K", nameFile);
+    codeCurrentFile = "k";
+    nameTable = "APS_aud_carga_archivos_bolsa";
+    headers = await formatoArchivo("k");
+  } else if (nameFile.includes("L.")) {
+  } else if (nameFile.includes("N.")) {
+  } else if (nameFile.includes("P.")) {
+  } else if (nameFile.includes(".413")) {
+    console.log("ARCHIVO CORRECTO : 413", nameFile);
+    codeCurrentFile = "413";
+    nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+    headers = await formatoArchivo(codeCurrentFile);
+    paramsInstrumento = {
+      table: "APS_param_tipo_instrumento",
+      params: {
+        select: ["sigla"],
+        where: [
+          {
+            key: "id_grupo",
+            valuesWhereIn: [125, 214],
+            whereIn: true,
+          },
+        ],
+      },
+    };
+    paramsCodOperacion = {
+      table: "APS_param_tipo_operacion",
+      params: {
+        select: ["codigo_aps"],
+        where: [
+          {
+            key: "tipo",
+            value: "V",
+          },
+        ],
+      },
+    };
+    paramsAccionesMO = {
+      table: "APS_param_tipo_instrumento",
+      params: {
+        select: ["sigla"],
+        where: [
+          {
+            key: "id_grupo",
+            valuesWhereIn: [125, 214],
+            whereIn: true,
+          },
+        ],
+      },
+    };
+    paramsCodMercado = {
+      table: "APS_param_lugar_negociacion",
+      params: {
+        select: ["codigo_aps"],
+        where: [
+          {
+            key: "id_tipo_lugar_negociacion",
+            value: 148,
+            operator: "<>",
+          },
+        ],
+      },
+    };
+    paramsCalfRiesgo = {
+      table: "APS_param_clasificador_comun",
+      params: {
+        select: ["descripcion"],
+        where: [
+          {
+            key: "id_clasificador_comun_grupo",
+            value: 5,
+          },
+        ],
+      },
+    };
+    paramsCodCustodia = {
+      table: "APS_param_clasificador_comun",
+      params: {
+        select: ["sigla"],
+        where: [
+          {
+            key: "id_clasificador_comun_grupo",
+            value: 9,
+          },
+        ],
+      },
+    };
+  } else if (nameFile.includes(".411")) {
+    console.log("ARCHIVO CORRECTO : 411", nameFile);
+    codeCurrentFile = "411";
+    nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+    headers = await formatoArchivo(codeCurrentFile);
+    paramsInstrumento = {
+      table: "APS_param_tipo_instrumento",
+      params: {
+        select: ["sigla"],
+        where: [
+          {
+            key: "id_grupo",
+            valuesWhereIn: [135, 138],
+            whereIn: true,
+          },
+        ],
+      },
+    };
+    paramsCodOperacion = {
+      table: "APS_param_tipo_operacion",
+      params: {
+        select: ["codigo_aps"],
+        // where: [
+        //   {
+        //     key: "tipo",
+        //     value: "V",
+        //   },
+        // ],
+      },
+    };
+    paramsAccionesMO = {
+      table: "APS_param_tipo_instrumento",
+      params: {
+        select: ["sigla"],
+        where: [
+          {
+            key: "id_grupo",
+            valuesWhereIn: [125, 214],
+            whereIn: true,
+          },
+        ],
+      },
+    };
+    paramsCodMercado = {
+      table: "APS_param_lugar_negociacion",
+      params: {
+        select: ["codigo_aps"],
+        where: [
+          {
+            key: "id_tipo_lugar_negociacion",
+            value: 58,
+            operator: "<>",
+          },
+        ],
+      },
+    };
+    paramsCalfRiesgo = {
+      table: "APS_param_clasificador_comun",
+      params: {
+        select: ["descripcion"],
+        where: [
+          {
+            key: "id_clasificador_comun_grupo",
+            value: 6,
+          },
+        ],
+      },
+    };
+    paramsCodCustodia = {
+      table: "APS_param_clasificador_comun",
+      params: {
+        select: ["sigla"],
+        where: [
+          {
+            key: "id_clasificador_comun_grupo",
+            value: 9,
+          },
+        ],
+      },
+    };
+  }
+  result = await {
+    codeCurrentFile,
+    nameTable,
+    headers,
+    paramsInstrumento,
+    paramsCodOperacion,
+    paramsAccionesMO,
+    paramsCodMercado,
+    paramsCalfRiesgo,
+    paramsCodCustodia,
+  };
+  return result;
+}
+
 async function obtenerCabeceras(table) {
   const obtenerColumnas = new Promise(async (resolve, reject) => {
     let query = ObtenerColumnasDeTablaUtil(table);
@@ -713,7 +907,7 @@ function formatearDatosEInsertarCabeceras(headers, dataSplit) {
     if (item.length === 0) {
       return;
     }
-    if (rowSplit.length > headers.length) {
+    if (rowSplit.length > headers.length || rowSplit.length < headers.length) {
       errors.push({
         msg: `El archivo contiene ${rowSplit.length} columnas y el formato esperado es que tenga ${headers.length} columnas`,
       });
@@ -874,4 +1068,5 @@ module.exports = {
   codigoCustodia,
   accionesMonedaOriginal,
   formatearDatosEInsertarCabeceras,
+  obtenerInformacionDeArchivo,
 };
