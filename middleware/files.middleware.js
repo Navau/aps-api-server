@@ -152,8 +152,12 @@ exports.validarArchivo = async (req, res, next) => {
   let codeCurrentFile = null;
   let isEndRegisterAllFilesAux = false;
   let isOkQuerys = false;
-  const fechaOperacion = req?.body?.fecha_operacion
-    ? req.body.fecha_operacion.split("-").join("")
+  let fechaInicial = req?.body?.fecha_operacion;
+  console.log(fechaInicial);
+  console.log(typeof fechaInicial);
+
+  const fechaOperacion = fechaInicial
+    ? fechaInicial.split("-").join("")
     : moment().format("YYYYMMDD");
 
   try {
