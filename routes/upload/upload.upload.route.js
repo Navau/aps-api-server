@@ -10,7 +10,7 @@ api.post(
   [
     md_auth.AsegurarAutenticacionConToken,
     md_files.subirArchivo,
-    md_files.validarArchivo2,
+    md_files.validarArchivo,
   ],
   controller.CargarArchivo2
 );

@@ -344,7 +344,7 @@ async function CargarArchivo2(req, res) {
   let previousErrors = req.errors;
   let returnsValues = req.returnsValues;
   let codeCurrentFile = req.codeCurrentFile;
-  let nameTable = req.nameTableAud;
+  nameTable = req.nameTableAud;
   let resultFinal = [];
   let bodyPartialQuery = [];
   let bodyFinalQuery = [];
@@ -352,6 +352,8 @@ async function CargarArchivo2(req, res) {
   let tableFile = null;
   let paramsFile = null;
   let queryUpdateForError = "";
+  console.log("codeCurrentFile", codeCurrentFile);
+  console.log("nameTable", nameTable);
   console.log("filesUploadedBD", filesUploadedBD);
   console.log("previousResults", previousResults);
   console.log("previousErrors", previousErrors);
