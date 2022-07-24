@@ -17,6 +17,7 @@ const usuarioRolRoutes = require("./seguridad/usuarioRol.seguridad.route");
 // Rutas de Auditoria (Se llama auditoria por la division en la base de datos)
 const cargaArchivosBolsaRoute = require("./auditoria/cargaArchivoBolsa.auditoria.route");
 const cargaArchivosPensionesSegurosRoute = require("./auditoria/cargaArchivoPensionesSeguros.auditoria.route");
+const erroresCargaArchivosRoute = require("./auditoria/erroresCargaArchivos.auditoria.route");
 
 // Rutas Operativas (Se llama Operativas por la division en la base de datos)
 const archivoKRoute = require("./operativo/archivoK.operativo.route");
@@ -108,6 +109,7 @@ function routerApi(app) {
     "/CargaArchivosPensionesSeguros",
     cargaArchivosPensionesSegurosRoute
   );
+  router.use("/ErroresCargaArchivos", erroresCargaArchivosRoute);
   router.use("/CarteraSIP", carteraSIPRoute);
   router.use("/CarteraSIPAgrupacion", carteraSIPAgrupacionRoute);
   router.use("/ClasificadorComun", clasificadorComunRoute);
