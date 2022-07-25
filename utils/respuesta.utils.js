@@ -9,6 +9,22 @@ function respErrorServidor500(res, err, msg) {
   });
 }
 
+function respErrorServidor500END(res, err, msg) {
+  console.log(err);
+  let errMessage = err?.message ? err?.message : "";
+  res
+    .status(500)
+    .send({
+      resultado: 0,
+      datos: null,
+      mensaje: msg
+        ? msg + errMessage
+        : "Error del servidor. ERROR:" + errMessage,
+      err,
+    })
+    .end();
+}
+
 function respErrorMulter500(res, err, msg) {
   console.log(err);
   let errMessage = err?.message ? err?.message : "";
@@ -77,8 +93,8 @@ function respDatosNoRecibidos400(res, msg) {
 }
 
 function respArchivoErroneo415(res, err, msg) {
-  res.status(200).send({
-    resultado: 1,
+  res.status(415).send({
+    resultado: 0,
     datos: null,
     mensaje: msg
       ? msg
@@ -105,4 +121,5 @@ module.exports = {
   respResultadoVacio404,
   respIDNoRecibido400,
   respResultadoCorrectoObjeto200,
+  respErrorServidor500END,
 };

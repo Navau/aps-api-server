@@ -182,6 +182,39 @@ function ValorMaximoDeCampoUtil(table, params) {
   return query;
 }
 
+function ObtenerUltimoRegistro(table, params) {
+  let query = "";
+  query = `SELECT * FROM public."${table}"`;
+  if (params?.where) {
+    map(params.where, (item, index) => {
+      if (item?.like === true) {
+        query = query + ` AND ${item.key} like '${item.value}%'`;
+      } else {
+        if (typeof item.value === "string") {
+          query = query + ` AND ${item.key} = '${item.value}'`;
+        } else if (typeof item.value === "number") {
+          query = query + ` AND ${item.key} = ${item.value}`;
+        } else if (typeof item.value === "boolean") {
+          query = query + ` AND ${item.key} = ${item.value}`;
+        }
+      }
+    });
+  }
+  if (params?.orderby) {
+    query += ` ORDER BY ${params.orderby.field} DESC LIMIT 1`;
+  }
+  if (!query.includes("WHERE") && query.includes("AND")) {
+    let queryAux = query.split("");
+    queryAux.splice(query.indexOf(" AND"), 0, " WHERE");
+    queryAux.splice(query.indexOf("AND"), 4);
+    queryAux.join("");
+    query = queryAux.join("");
+  }
+  query && (query = query + ";");
+  console.log(query);
+  return query;
+}
+
 function ResetearIDUtil(table, params) {
   let query = "";
   query = `ALTER SEQUENCE "${table}_${params.field}_seq" RESTART WITH ${params.resetValue};`;
@@ -807,4 +840,5 @@ module.exports = {
   FormatearObtenerMenuAngUtil,
   CargarArchivoABaseDeDatosUtil,
   ObtenerColumnasDeTablaUtil,
+  ObtenerUltimoRegistro,
 };

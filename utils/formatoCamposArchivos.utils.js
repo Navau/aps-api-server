@@ -890,7 +890,7 @@ async function obtenerValidaciones(typeFile) {
   return result;
 }
 
-function formatearDatosEInsertarCabeceras(headers, dataSplit) {
+async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
   let arrayDataObject = [];
   let errors = [];
   headers.splice(0, 1); // ELIMINAR ID DE TABLA

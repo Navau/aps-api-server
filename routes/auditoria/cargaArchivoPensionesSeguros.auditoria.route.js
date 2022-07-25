@@ -10,6 +10,11 @@ api.post(
   [md_auth.AsegurarAutenticacionConToken],
   controller.ValorMaximo
 );
+api.post(
+  "/UltimaCarga",
+  [md_auth.AsegurarAutenticacionConToken],
+  controller.UltimaCarga
+);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);
 api.post(
   "/Escoger",

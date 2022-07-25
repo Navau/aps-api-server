@@ -11,6 +11,7 @@ const {
   DeshabilitarUtil,
   ValidarIDActualizarUtil,
   ValorMaximoDeCampoUtil,
+  ObtenerUltimoRegistro,
 } = require("../../utils/consulta.utils");
 
 const {
@@ -45,6 +46,47 @@ function ValorMaximo(req, res) {
     where: whereFinal,
   };
   let query = ValorMaximoDeCampoUtil(nameTable, params);
+  pool.query(query, (err, result) => {
+    if (err) {
+      respErrorServidor500(res, err);
+    } else {
+      if (!result.rowCount || result.rowCount < 1) {
+        respResultadoVacio404(res);
+      } else {
+        if (result.rows[0].max === null) {
+          result = {
+            ...result,
+            rows: [
+              {
+                max: moment(item).format("YYYY-MM-DD HH:mm:ss.SSS"),
+              },
+            ],
+          };
+        }
+        respResultadoCorrecto200(res, result);
+      }
+    }
+  });
+}
+
+function UltimaCarga(req, res) {
+  const { id_rol, id_usuario } = req.body;
+  const params = {
+    where: [
+      {
+        key: "id_usuario",
+        id_usuario,
+      },
+      {
+        key: "id_rol",
+        id_rol,
+      },
+    ],
+    orderby: {
+      field: "nro_carga",
+    },
+  };
+  let query = ObtenerUltimoRegistro(nameTable, params);
   pool.query(query, (err, result) => {
     if (err) {
       respErrorServidor500(res, err);
@@ -234,4 +276,5 @@ module.exports = {
   Actualizar,
   Deshabilitar,
   ValorMaximo,
+  UltimaCarga,
 };
