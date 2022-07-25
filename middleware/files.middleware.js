@@ -181,6 +181,9 @@ exports.validarArchivo = async (req, res, next) => {
       filesUploaded
     );
 
+    console.log("isAllFiles", isAllFiles);
+    console.log("archivosRequeridos", archivosRequeridos);
+
     const instituciones = await obtenerInstitucion()
       .then((response) => {
         return { result: response.rows };
