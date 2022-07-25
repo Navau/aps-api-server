@@ -153,8 +153,6 @@ exports.validarArchivo = async (req, res, next) => {
   let isEndRegisterAllFilesAux = false;
   let isOkQuerys = false;
   let fechaInicial = req?.body?.fecha_operacion;
-  console.log(fechaInicial);
-  console.log(typeof fechaInicial);
 
   const fechaOperacion = fechaInicial
     ? fechaInicial.split("-").join("")
@@ -503,7 +501,6 @@ exports.validarArchivo = async (req, res, next) => {
               .catch((err) => {
                 console.log(err);
                 errorsPromise.push({
-                  files: currentFiles,
                   type: "QUERY SQL ERROR",
                   message: `Hubo un error al obtener el ultimo NUMERO DE CARGA en la tabla '${nameTable}' de la FECHA OPERACIÓN ${fechaOperacion} ERROR: ${err.message}`,
                   err,
