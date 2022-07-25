@@ -428,7 +428,7 @@ async function CargarArchivo2(req, res) {
         let dataObject = Object.assign({}, itemV1);
         partialData.push(dataObject);
       });
-      let partialHeaders = Object.keys(headers);
+      let partialHeaders = headers;
       map(partialData, (itemV1, indexV1) => {
         let x = {};
         map(itemV1, (itemV2, indexV2) => {

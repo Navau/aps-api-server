@@ -667,7 +667,7 @@ exports.validarArchivo = async (req, res, next) => {
                 req.filesUploadedBD = response.bodyQuery;
                 req.codeCurrentFile = codeCurrentFile;
                 req.nameTableAud = nameTable;
-                next();
+                // next();
               }
             })
             .finally(() => {});
