@@ -580,12 +580,11 @@ exports.validarArchivo = async (req, res, next) => {
               });
           });
           insertFilesPromise
-            .then((response) => {
+            .then(async (response) => {
               if (errors.length >= 1 || response.errorsPromise.length >= 1) {
                 if (response.errorsPromise.length >= 1) {
                   errors = [...errors, response.errorsPromise];
                 }
-                respArchivoErroneo415(res, errors);
                 const insertErorrsPromise = new Promise(
                   async (resolve, reject) => {
                     let queryFiles = "";
@@ -649,7 +648,7 @@ exports.validarArchivo = async (req, res, next) => {
                       });
                   }
                 );
-                insertErorrsPromise
+                await insertErorrsPromise
                   .then((response) => {})
                   .catch((err) => {
                     respErrorServidor500(
@@ -658,6 +657,7 @@ exports.validarArchivo = async (req, res, next) => {
                       "Ocurrió un error inesperado."
                     );
                   });
+                respResultadoCorrectoObjeto200(res, errors);
               } else {
                 req.errors = [...errors, response.errorsPromise];
                 req.results = response.resultsPromise;
@@ -667,7 +667,7 @@ exports.validarArchivo = async (req, res, next) => {
                 req.filesUploadedBD = response.bodyQuery;
                 req.codeCurrentFile = codeCurrentFile;
                 req.nameTableAud = nameTable;
-                // next();
+                // respResultadoCorrecto200(res, { rows: { errors, results } });
               }
             })
             .finally(() => {});

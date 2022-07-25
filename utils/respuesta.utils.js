@@ -78,7 +78,7 @@ function respDatosNoRecibidos400(res, msg) {
 
 function respArchivoErroneo415(res, err, msg) {
   res.status(415).send({
-    resultado: 0,
+    resultado: 1,
     datos: null,
     mensaje: msg
       ? msg
