@@ -657,7 +657,7 @@ exports.validarArchivo = async (req, res, next) => {
                       "Ocurrió un error inesperado."
                     );
                   });
-                respResultadoCorrectoObjeto200(res, errors);
+                respArchivoErroneo415(res, errors);
               } else {
                 req.errors = [...errors, response.errorsPromise];
                 req.results = response.resultsPromise;
