@@ -180,6 +180,7 @@ exports.validarArchivo = async (req, res, next) => {
       archivosRequeridos,
       filesUploaded
     );
+    console.log(filesUploaded);
 
     console.log("isAllFiles", isAllFiles);
     console.log("archivosRequeridos", archivosRequeridos);
