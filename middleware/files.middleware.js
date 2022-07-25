@@ -187,6 +187,7 @@ exports.validarArchivo = async (req, res, next) => {
         return { err };
       })
       .finally(() => {});
+    console.log(archivosRequeridos);
     const isAllFiles = await verificarArchivosRequeridos(
       archivosRequeridos,
       filesUploaded
