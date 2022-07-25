@@ -97,6 +97,8 @@ function Login(req, res) {
         FROM public."APS_seg_usuario_rol" 
         WHERE id_usuario = ${result.rows[0].id_usuario} and status = true;`;
 
+        console.log(queryRol);
+
         pool.query(queryRol, (err, result2) => {
           if (err) {
             res.status(500).send({
@@ -110,7 +112,8 @@ function Login(req, res) {
               res.status(404).send({
                 resultado: 0,
                 datos: null,
-                mensaje: "No se pudo crear el token de autenticación.",
+                mensaje:
+                  "Este usuario no cuenta con un Rol, favor asignar uno.",
               });
             } else {
               let resultAux = {
