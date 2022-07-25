@@ -85,28 +85,36 @@ async function obtenerInstitucion(params) {
 }
 
 function verificarArchivosRequeridos(archivosRequeridos, archivosSubidos) {
-  let arrayA = archivosRequeridos.result;
-  let arrayB = archivosSubidos;
-  let arrayResult = [];
-  let arrayResult2 = [];
-  map(arrayA, (itemR, indexR) => {
-    arrayResult2.push(itemR.archivo);
-    map(arrayB, (itemU, indexU) => {
-      if (itemR.archivo === itemU.originalname) {
-        arrayResult.push(itemR.archivo);
+  const verificarArchivos = new Promise((resolve, reject) => {
+    let arrayA = archivosRequeridos.result;
+    console.log("arrayA", arrayA);
+    let arrayB = archivosSubidos;
+    console.log("arrayB", arrayB);
+    let arrayResult = [];
+    let arrayResult2 = [];
+    map(arrayA, (itemR, indexR) => {
+      arrayResult2.push(itemR.archivo);
+      map(arrayB, (itemU, indexU) => {
+        if (itemR.archivo === itemU.originalname) {
+          console.log(itemR.archivo);
+          arrayResult.push(itemR.archivo);
+        }
+      });
+    });
+    console.log("arrayResult", arrayResult);
+    map(arrayResult, (item, index) => {
+      let myIndex = arrayResult2.indexOf(item);
+      if (myIndex !== -1) {
+        arrayResult2.splice(myIndex, 1);
       }
     });
+    resolve({
+      ok: JSON.stringify(arrayA) === JSON.stringify(arrayB),
+      missingFiles: arrayResult2,
+    });
   });
-  map(arrayResult, (item, index) => {
-    let myIndex = arrayResult2.indexOf(item);
-    if (myIndex !== -1) {
-      arrayResult2.splice(myIndex, 1);
-    }
-  });
-  return {
-    ok: JSON.stringify(arrayA) === JSON.stringify(arrayB),
-    missingFiles: arrayResult2,
-  };
+
+  return verificarArchivos;
 }
 
 async function obtenerListaArchivos(params) {
@@ -115,6 +123,8 @@ async function obtenerListaArchivos(params) {
   const fecha_operacion = params.req?.body?.fecha_operacion
     ? params.req.body.fecha_operacion
     : moment().format("YYYY-MM-DD");
+
+  console.log(params.req.body.fecha_operacion);
 
   const obtenerListaArchivosPromise = new Promise(async (resolve, reject) => {
     let query = `SELECT 
@@ -175,15 +185,14 @@ exports.validarArchivo = async (req, res, next) => {
       })
       .catch((err) => {
         return { err };
-      });
+      })
+      .finally(() => {});
     const isAllFiles = await verificarArchivosRequeridos(
       archivosRequeridos,
       filesUploaded
-    );
-    console.log(filesUploaded);
-
-    console.log("isAllFiles", isAllFiles);
-    console.log("archivosRequeridos", archivosRequeridos);
+    ).then((response) => {
+      return response;
+    });
 
     const instituciones = await obtenerInstitucion()
       .then((response) => {
@@ -213,6 +222,7 @@ exports.validarArchivo = async (req, res, next) => {
         dataSplit = null;
       }
       if (isAllFiles.ok === false && isEndRegisterAllFilesAux === false) {
+        console.log("TEST IF", isAllFiles);
         map(isAllFiles.missingFiles, (item, index) => {
           errors.push({
             archivo: item,
