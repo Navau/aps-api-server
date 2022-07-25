@@ -21,7 +21,7 @@ const {
   respIDNoRecibido400,
 } = require("../../utils/respuesta.utils");
 
-const nameTable = "APS_aud_errores_carga_archivos ";
+const nameTable = "APS_aud_errores_carga_archivos";
 
 function ValorMaximo(req, res) {
   const { max } = req.body;

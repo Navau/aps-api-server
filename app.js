@@ -2,8 +2,8 @@ const express = require("express");
 const app = express();
 const RouterApi = require("./routes");
 
-app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 //Configure Header HTTP
 app.use((req, res, next) => {
