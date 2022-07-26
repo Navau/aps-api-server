@@ -509,18 +509,17 @@ async function validarArchivosIteraciones(params) {
 
 exports.validarArchivo2 = async (req, res, next) => {
   let fechaInicial = req?.body?.fecha_operacion;
-
-  const id_rol = req.user.id_rol;
-  const id_usuario = req.user.id_usuario;
-  const fechaOperacion = fechaInicial
-    ? fechaInicial.split("-").join("")
-    : moment().format("YYYYMMDD");
-
-  let infoTables = await seleccionarTablas({
-    files: req.files,
-  });
-
   try {
+    const id_rol = req.user.id_rol;
+    const id_usuario = req.user.id_usuario;
+    const fechaOperacion = fechaInicial
+      ? fechaInicial.split("-").join("")
+      : moment().format("YYYYMMDD");
+
+    let infoTables = await seleccionarTablas({
+      files: req.files,
+    });
+
     if (infoTables.code === null && infoTables.table === null) {
       respErrorServidor500END(res, {
         type: "NAME TABLE",
