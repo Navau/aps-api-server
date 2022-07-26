@@ -58,7 +58,7 @@ function ValorMaximo(req, res) {
             ...result,
             rows: [
               {
-                max: moment(item).format("YYYY-MM-DD HH:mm:ss.SSS"),
+                max: moment().format("YYYY-MM-DD HH:mm:ss.SSS"),
               },
             ],
           };
