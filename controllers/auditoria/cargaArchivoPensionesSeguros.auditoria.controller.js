@@ -71,15 +71,17 @@ function ValorMaximo(req, res) {
 
 function UltimaCarga(req, res) {
   const { id_rol, id_usuario } = req.body;
+  console.log(id_rol);
+  console.log(id_usuario);
   const params = {
     where: [
       {
         key: "id_usuario",
-        id_usuario,
+        value: id_usuario,
       },
       {
         key: "id_rol",
-        id_rol,
+        value: id_rol,
       },
     ],
     orderby: {
@@ -94,16 +96,6 @@ function UltimaCarga(req, res) {
       if (!result.rowCount || result.rowCount < 1) {
         respResultadoVacio404(res);
       } else {
-        if (result.rows[0].max === null) {
-          result = {
-            ...result,
-            rows: [
-              {
-                max: moment(item).format("YYYY-MM-DD HH:mm:ss.SSS"),
-              },
-            ],
-          };
-        }
         respResultadoCorrecto200(res, result);
       }
     }

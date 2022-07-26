@@ -198,7 +198,6 @@ async function validarArchivosIteraciones(params) {
       .catch((err) => {
         return { err };
       });
-    console.log("ANTES DE IS ALL FILES", archivosRequeridos);
     let isAllFiles;
     await verificarArchivosRequeridos(archivosRequeridos, filesUploaded)
       .then((response) => {
@@ -219,8 +218,6 @@ async function validarArchivosIteraciones(params) {
           } else {
             dataSplit = null;
           }
-          console.log("TEST XD 3", isOkValidate);
-          console.log("TEST XD 3", isAllFiles);
           if (isAllFiles.missingFiles.length === 0 && isErrorPast === false) {
             errors.push({
               archivo: "",
@@ -733,7 +730,7 @@ exports.validarArchivo2 = async (req, res, next) => {
                 req.filesUploadedBD = response.bodyQuery;
                 req.codeCurrentFile = codeCurrentFile;
                 req.nameTableAud = nameTable;
-                respResultadoCorrectoObjeto200(res, response);
+                next();
               }
             })
             .catch(() => {

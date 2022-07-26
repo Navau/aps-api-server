@@ -187,6 +187,7 @@ function ObtenerUltimoRegistro(table, params) {
   query = `SELECT * FROM public."${table}"`;
   if (params?.where) {
     map(params.where, (item, index) => {
+      console.log(item);
       if (item?.like === true) {
         query = query + ` AND ${item.key} like '${item.value}%'`;
       } else {
@@ -196,6 +197,8 @@ function ObtenerUltimoRegistro(table, params) {
           query = query + ` AND ${item.key} = ${item.value}`;
         } else if (typeof item.value === "boolean") {
           query = query + ` AND ${item.key} = ${item.value}`;
+        } else {
+          query = query + ` AND ${item.key} = '${item.value}'`;
         }
       }
     });

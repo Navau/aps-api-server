@@ -163,19 +163,6 @@ async function obtenerInformacionDeArchivo(nameFile) {
         // ],
       },
     };
-    paramsAccionesMO = {
-      table: "APS_param_tipo_instrumento",
-      params: {
-        select: ["sigla"],
-        where: [
-          {
-            key: "id_grupo",
-            valuesWhereIn: [125, 214],
-            whereIn: true,
-          },
-        ],
-      },
-    };
     paramsCodMercado = {
       table: "APS_param_lugar_negociacion",
       params: {
@@ -209,6 +196,42 @@ async function obtenerInformacionDeArchivo(nameFile) {
           {
             key: "id_clasificador_comun_grupo",
             value: 9,
+          },
+        ],
+      },
+    };
+  } else if (nameFile.includes(".441")) {
+    console.log("ARCHIVO CORRECTO : 441", nameFile);
+    codeCurrentFile = "441";
+    nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+    headers = await formatoArchivo(codeCurrentFile);
+    paramsInstrumento = {
+      table: "APS_param_tipo_instrumento",
+      params: {
+        select: ["sigla"],
+        where: [
+          {
+            key: "id_grupo",
+            valuesWhereIn: [135, 138],
+            whereIn: true,
+          },
+        ],
+      },
+    };
+  } else if (nameFile.includes(".44C")) {
+    console.log("ARCHIVO CORRECTO : 44C", nameFile);
+    codeCurrentFile = "44C";
+    nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+    headers = await formatoArchivo(codeCurrentFile);
+    paramsInstrumento = {
+      table: "APS_param_tipo_instrumento",
+      params: {
+        select: ["sigla"],
+        where: [
+          {
+            key: "id_grupo",
+            valuesWhereIn: [135, 138],
+            whereIn: true,
           },
         ],
       },
@@ -370,7 +393,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "tipo_instrumento",
-        pattern: /^[A-Za-z0-9]{0,3}$/,
+        pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: true,
         required: true,
         function: "tipoinstrumento",
@@ -672,14 +695,14 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "cantidad_pagos",
-        pattern: /^[0-9]\d{0,2}(?:\,\d{1,3})?$/,
+        pattern: /^[0-9]{3,3}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "tasa_interes_variable",
-        pattern: /^([0-9]{0,2})(\.[0-9]{0,8})?$/,
+        pattern: /^(\d{1,2})(\.\d{8,8}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
@@ -689,7 +712,7 @@ async function obtenerValidaciones(typeFile) {
     result = [
       {
         columnName: "tipo_instrumento",
-        pattern: /^[A-Za-z0-9]{0,3}$/,
+        pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: true,
         required: true,
         function: "tipoInstrumento",
@@ -703,7 +726,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "nro_pago",
-        pattern: /^\d{1,3}$/,
+        pattern: /^\d{3,3}$/,
         positveNegative: true,
         required: true,
         function: null,
@@ -749,14 +772,14 @@ async function obtenerValidaciones(typeFile) {
     result = [
       {
         columnName: "tipo_cuenta",
-        pattern: /^[A-Za-z]{0,3}$/,
+        pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: true,
         required: true,
         function: "tipoCuenta",
       },
       {
         columnName: "sigla_entidad_financiera",
-        pattern: /^[A-Za-z]{0,3}$/,
+        pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: true,
         required: true,
         function: "siglaEntidadFinanciera",
@@ -770,21 +793,21 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "moneda",
-        pattern: /^[A-Za-z]{0,3}$/,
+        pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: true,
         required: true,
         function: "moneda",
       },
       {
         columnName: "saldo_mo_original",
-        pattern: /^(\d{1,9})(\.\d{2,2}){1,1}$/,
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "total_saldo_bs",
-        pattern: /^(\d{1,9})(\.\d{2,2}){1,1}$/,
+        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
@@ -1055,6 +1078,8 @@ async function codigoCustodia(table, params) {
     });
   return resultFinal;
 }
+
+async function tipoCuenta(table, params) {}
 
 module.exports = {
   formatoArchivo,
