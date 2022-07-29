@@ -12,7 +12,7 @@ api.post(
     md_files.subirArchivo,
     md_files.validarArchivo2,
   ],
-  controller.CargarArchivo2
+  controller.CargarArchivo3
 );
 api.get("/Listar", [md_auth.AsegurarAutenticacionConToken], controller.Listar);
 api.post("/Buscar", [md_auth.AsegurarAutenticacionConToken], controller.Buscar);

@@ -35,17 +35,22 @@ const {
 const { SelectInnerJoinSimple } = require("../utils/multiConsulta.utils");
 
 async function obtenerInformacionDeArchivo(nameFile) {
-  console.log("nameFile", nameFile);
+  // console.log("nameFile", nameFile);
   const obtenerInformacionDeArchivoPromise = new Promise(
     async (resolve, reject) => {
       let codeCurrentFile = null;
       let nameTable = null;
       let paramsInstrumento = null;
       let paramsCodOperacion = null;
+      let paramsCodValoracion = null;
       let paramsAccionesMO = null;
       let paramsCodMercado = null;
       let paramsCalfRiesgo = null;
       let paramsCodCustodia = null;
+      let paramsTipoCuenta = null;
+      let paramsFlujoTotal = null;
+      let paramsEntidadFinanciera = null;
+      let paramsMoneda = null;
       let headers = null;
       if (nameFile.includes("K.")) {
         console.log("ARCHIVO CORRECTO : K", nameFile);
@@ -85,19 +90,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
-        paramsAccionesMO = {
-          table: "APS_param_tipo_instrumento",
-          params: {
-            select: ["sigla"],
-            where: [
-              {
-                key: "id_grupo",
-                valuesWhereIn: [125, 214],
-                whereIn: true,
-              },
-            ],
-          },
-        };
+        paramsAccionesMO = true;
         paramsCodMercado = {
           table: "APS_param_lugar_negociacion",
           params: {
@@ -136,7 +129,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
           },
         };
       } else if (nameFile.includes(".411")) {
-        console.log("ARCHIVO CORRECTO : 411", nameFile);
+        // console.log("ARCHIVO CORRECTO : 411", nameFile);
         codeCurrentFile = "411";
         nameTable = "APS_aud_carga_archivos_pensiones_seguros";
         headers = await formatoArchivo(codeCurrentFile);
@@ -146,7 +139,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             select: ["sigla"],
             where: [
               {
-                key: "id_grupo",
+                key: "id_tipo_renta",
                 valuesWhereIn: [135, 138],
                 whereIn: true,
               },
@@ -256,6 +249,7 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
+        paramsFlujoTotal = true;
       } else if (nameFile.includes(".451")) {
         console.log("ARCHIVO CORRECTO : 451", nameFile);
         codeCurrentFile = "451";
@@ -274,6 +268,36 @@ async function obtenerInformacionDeArchivo(nameFile) {
             ],
           },
         };
+        paramsTipoCuenta = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 15,
+              },
+            ],
+          },
+        };
+        paramsEntidadFinanciera = {
+          table: "APS_param_emisor",
+          params: {
+            select: ["codigo_rmv"],
+            where: [
+              {
+                key: "id_sector_economico",
+                value: 6,
+              },
+            ],
+          },
+        };
+        paramsMoneda = {
+          table: "APS_param_moneda",
+          params: {
+            select: ["sigla"],
+          },
+        };
       } else if (nameFile.includes(".481")) {
         console.log("ARCHIVO CORRECTO : 481", nameFile);
         codeCurrentFile = "481";
@@ -283,11 +307,16 @@ async function obtenerInformacionDeArchivo(nameFile) {
           table: "APS_param_tipo_instrumento",
           params: {
             select: ["sigla"],
+          },
+        };
+        paramsCodValoracion = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
             where: [
               {
-                key: "id_grupo",
-                valuesWhereIn: [135, 138],
-                whereIn: true,
+                key: "id_tipo_renta",
+                value: 138,
               },
             ],
           },
@@ -301,20 +330,13 @@ async function obtenerInformacionDeArchivo(nameFile) {
           table: "APS_param_tipo_instrumento",
           params: {
             select: ["sigla"],
-            where: [
-              {
-                key: "id_grupo",
-                valuesWhereIn: [135, 138],
-                whereIn: true,
-              },
-            ],
           },
         };
       } else {
         reject();
       }
-      console.log(codeCurrentFile);
-      console.log(headers);
+      // console.log(codeCurrentFile);
+      // console.log(headers);
       resolve({
         codeCurrentFile,
         nameTable,
@@ -322,9 +344,14 @@ async function obtenerInformacionDeArchivo(nameFile) {
         paramsInstrumento,
         paramsCodOperacion,
         paramsAccionesMO,
+        paramsFlujoTotal,
+        paramsTipoCuenta,
+        paramsEntidadFinanciera,
+        paramsMoneda,
         paramsCodMercado,
         paramsCalfRiesgo,
         paramsCodCustodia,
+        paramsCodValoracion,
       });
     }
   );
@@ -348,7 +375,7 @@ async function obtenerCabeceras(table) {
 }
 
 async function formatoArchivo(type) {
-  console.log("TYPE", type);
+  // console.log("TYPE", type);
   let headers = null;
   if (type === "k") {
     return {
@@ -390,6 +417,19 @@ async function formatoArchivo(type) {
     return headers;
   } else if (type === "441") {
     await obtenerCabeceras("APS_seguro_archivo_441")
+      .then(async (response) => {
+        let resultAux = [];
+        map(response.rows, (item, index) => {
+          resultAux.push(item.column_name);
+        });
+        headers = resultAux;
+      })
+      .catch((err) => {
+        headers = { err };
+      });
+    return headers;
+  } else if (type === "443") {
+    await obtenerCabeceras("APS_seguro_archivo_443")
       .then(async (response) => {
         let resultAux = [];
         map(response.rows, (item, index) => {
@@ -472,7 +512,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         positveNegative: false,
         required: true,
         function: null,
@@ -532,7 +572,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_operacion",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         positveNegative: false,
         required: true,
         function: null,
@@ -567,35 +607,35 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "precio_negociacion",
-        pattern: /^(\d{1,10})(\.\d{2,2}){1,1}$/,
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "precio_total_mo",
-        pattern: /^(\d{1,10})(\.\d{2,2}){1,1}$/,
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: "accionesMonedaOriginal",
       },
       {
         columnName: "precio_total_bs",
-        pattern: /^(\d{1,10})(\.\d{2,2}){1,1}$/,
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "codigo_mercado",
-        pattern: /^[A-Za-z]{3,3}$/,
+        pattern: /^[A-Za-z0-9,-]{3,3}$/,
         positveNegative: true,
         required: true,
         function: "codigoMercado",
       },
       {
         columnName: "precio_unitario",
-        pattern: /^(\d{1,10})(\.\d{2,2}){1,1}$/,
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
@@ -620,7 +660,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_operacion",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         positveNegative: false,
         required: true,
         function: null,
@@ -669,35 +709,35 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "precio_negociacion_mo",
-        pattern: /^(\d{1,10})(\.\d{2,2}){1,1}$/,
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "precio_total_mo",
-        pattern: /^(\d{1,10})(\.\d{2,2}){1,1}$/,
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "precio_total_bs",
-        pattern: /^(\d{1,10})(\.\d{2,2}){1,1}$/,
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "codigo_mercado",
-        pattern: /^[A-Za-z]{3,3}$/,
+        pattern: /^[A-Za-z0-9,-]{3,3}$/,
         positveNegative: true,
         required: true,
         function: "codigoMercado",
       },
       {
         columnName: "precio_unitario",
-        pattern: /^(\d{1,10})(\.\d{2,2}){1,1}$/,
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
@@ -721,7 +761,7 @@ async function obtenerValidaciones(typeFile) {
     result = [
       {
         columnName: "tipo_instrumento",
-        pattern: /^[A-Za-z0-9]{3,3}$/,
+        pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: true,
         required: true,
         function: "tipoInstrumento",
@@ -736,7 +776,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_vencimiento",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         positveNegative: false,
         required: true,
         function: null,
@@ -744,7 +784,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_emision",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         positveNegative: false,
         required: true,
         function: null,
@@ -764,31 +804,29 @@ async function obtenerValidaciones(typeFile) {
         function: null,
       },
       {
-        columnName: "tasa_nominal_emision",
-        pattern: /^(\d{1,2})(\.\d{8,8}){1,1}$/,
+        columnName: "tasa_emision",
+        pattern: /^(\d{1,12})(\.\d{8,8}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
-        columnName: "plazo_emision_valor",
-        pattern:
-          /^([0-9]\d{4}|\d[0-9]\d{3}|\d{2}[0-9]\d{2}|\d{3}[0-9]\d|\d{4}[0-9])$/,
+        columnName: "plazo_emision",
+        pattern: /^(\d{5,5}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
-        columnName: "periodo_pago_cupones",
-        pattern:
-          /^([D,M,A]\d{4}|\d[0-9]\d{3}|\d{2}[0-9]\d{2}|\d{3}[0-9]\d|\d{4}[0-9])$/,
+        columnName: "plazo_cupon",
+        pattern: /^([D,M,A])(\d{1,4}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
-        columnName: "cantidad_pagos",
-        pattern: /^[0-9]{3,3}$/,
+        columnName: "nro_pago",
+        pattern: /^[0-9]{1,3}$/,
         positveNegative: true,
         required: true,
         function: null,
@@ -804,16 +842,16 @@ async function obtenerValidaciones(typeFile) {
   } else if (typeFile === "443") {
     result = [
       {
-        columnName: "fecha_operacion",
+        columnName: "fecha_emision",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         positveNegative: true,
         required: true,
-        function: "tipoInstrumento",
+        function: null,
       },
       {
         columnName: "tipo_instrumento",
-        pattern: /^[A-Za-z0-9]{3,3}$/,
+        pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: true,
         required: true,
         function: "tipoInstrumento",
@@ -827,7 +865,7 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "cantidad_acciones",
-        pattern: /^\d{1,7}$/,
+        pattern: /^(\d{7,7}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
@@ -878,8 +916,8 @@ async function obtenerValidaciones(typeFile) {
         function: null,
       },
       {
-        columnName: "nro_pago",
-        pattern: /^\d{3,3}$/,
+        columnName: "nro_cupon",
+        pattern: /^(\d{3,3}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
@@ -887,20 +925,20 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_pago",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         positveNegative: false,
         required: true,
         function: null,
       },
       {
-        columnName: "pago_intereses",
+        columnName: "interes",
         pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
-        columnName: "amortizacion_capital",
+        columnName: "amortizacion",
         pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
@@ -911,10 +949,10 @@ async function obtenerValidaciones(typeFile) {
         pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
-        function: null,
+        function: "flujoTotal",
       },
       {
-        columnName: "saldo_amortizar",
+        columnName: "saldo_capital",
         pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
@@ -931,15 +969,15 @@ async function obtenerValidaciones(typeFile) {
         function: "tipoCuenta",
       },
       {
-        columnName: "sigla_entidad_financiera",
+        columnName: "entidad_financiera",
         pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: true,
         required: true,
-        function: "siglaEntidadFinanciera",
+        function: "entidadFinanciera",
       },
       {
-        columnName: "nro_cuenta_entidad",
-        pattern: /^[A-Za-z0-9]{5,20}$/,
+        columnName: "nro_cuenta",
+        pattern: /^[A-Za-z0-9,-]{5,20}$/,
         positveNegative: true,
         required: true,
         function: null,
@@ -952,15 +990,15 @@ async function obtenerValidaciones(typeFile) {
         function: "moneda",
       },
       {
-        columnName: "saldo_mo_original",
-        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        columnName: "saldo_mo",
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
-        columnName: "total_saldo_bs",
-        pattern: /^(\d{1,14})(\.\d{2,2}){1,1}$/,
+        columnName: "saldo_bs",
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
@@ -1055,7 +1093,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_operacion",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         positveNegative: false,
         required: true,
         function: null,
@@ -1150,7 +1188,7 @@ async function obtenerValidaciones(typeFile) {
       {
         columnName: "fecha_operacion",
         pattern:
-          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         positveNegative: false,
         required: true,
         function: null,
@@ -1162,47 +1200,59 @@ async function obtenerValidaciones(typeFile) {
 }
 
 async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
-  let arrayDataObject = [];
-  let errors = [];
-  headers.splice(0, 1); // ELIMINAR ID DE TABLA
+  const formatearPromise = new Promise((resolve, reject) => {
+    let arrayDataObject = [];
+    let errors = [];
+    let isLimitLengthFile = false;
+    console.log(headers);
+    headers.splice(0, 1); // ELIMINAR ID DE TABLA
 
-  map(["id_carga_archivos"], (item, index) => {
-    let myIndex = headers.indexOf(item);
-    if (myIndex !== -1) {
-      headers.splice(myIndex, 1);
-    }
-  }); // ELIMINAR ID CARGA ARCHIVOS
+    map(["id_carga_archivos"], (item, index) => {
+      let myIndex = headers.indexOf(item);
+      if (myIndex !== -1) {
+        headers.splice(myIndex, 1);
+      }
+    }); // ELIMINAR ID CARGA ARCHIVOS
 
-  map(dataSplit, (item, index) => {
-    let rowSplit = item.split(",");
-    if (item.length === 0) {
-      return;
-    }
-    if (rowSplit.length > headers.length || rowSplit.length < headers.length) {
-      errors.push({
-        msg: `El archivo contiene ${rowSplit.length} columnas y el formato esperado es que tenga ${headers.length} columnas`,
-      });
-      return;
-    }
-    let resultObject = {};
-    let counterAux = 0;
-    map(headers, (item2, index2) => {
-      resultObject = {
-        ...resultObject,
-        [item2]: rowSplit[counterAux]?.trim().replace(/['"]+/g, ""), //QUITAR ESPACIOS Y QUITAR COMILLAS DOBLES
-      };
-      counterAux++;
+    map(dataSplit, (item, index) => {
+      let rowSplit = item.split(",");
+      if (item.length === 0) {
+        return;
+      } else if (
+        (rowSplit.length > headers.length ||
+          rowSplit.length < headers.length) &&
+        isLimitLengthFile === false
+      ) {
+        errors.push({
+          msg: `El archivo contiene ${rowSplit.length} columnas y el formato esperado es que tenga ${headers.length} columnas`,
+        });
+        isLimitLengthFile = true;
+        return;
+      } else {
+        if (isLimitLengthFile === false) {
+          let resultObject = {};
+          let counterAux = 0;
+          map(headers, (item2, index2) => {
+            resultObject = {
+              ...resultObject,
+              [item2]: rowSplit[counterAux]?.trim().replace(/['"]+/g, ""), //QUITAR ESPACIOS Y QUITAR COMILLAS DOBLES
+            };
+            counterAux++;
+          });
+          arrayDataObject.push(resultObject);
+        }
+      }
     });
-    arrayDataObject.push(resultObject);
-  });
 
-  if (errors.length >= 1) {
-    return {
-      err: true,
-      errors,
-    };
-  }
-  return arrayDataObject;
+    if (errors.length >= 1) {
+      reject({
+        err: true,
+        errors,
+      });
+    }
+    resolve(arrayDataObject);
+  });
+  return formatearPromise;
 }
 
 async function clasificadorComun(table, params) {
@@ -1257,7 +1307,11 @@ async function tipoMarcacion(params) {
   return resultFinal;
 }
 
-async function accionesMonedaOriginal(params) {}
+async function accionesMonedaOriginal(params) {
+  const { numero_acciones, precio_unitario } = params;
+
+  return numero_acciones * precio_unitario;
+}
 
 async function codigoOperacion(table, params) {
   let query = EscogerInternoUtil(table, params);
@@ -1327,7 +1381,61 @@ async function codigoCustodia(table, params) {
   return resultFinal;
 }
 
-async function tipoCuenta(table, params) {}
+async function flujoTotal(params) {
+  const { interes, amortizacion } = params;
+  return interes + amortizacion;
+}
+
+async function tipoCuenta(table, params) {
+  let query = EscogerInternoUtil(table, params);
+  let resultFinal = null;
+  await pool
+    .query(query)
+    .then((result) => {
+      resultFinal = { resultFinal: result.rows };
+    })
+    .catch((err) => {
+      resultFinal = { err };
+    })
+    .finally(() => {
+      return resultFinal;
+    });
+  return resultFinal;
+}
+
+async function entidadFinanciera(table, params) {
+  let query = EscogerInternoUtil(table, params);
+  let resultFinal = null;
+  await pool
+    .query(query)
+    .then((result) => {
+      resultFinal = { resultFinal: result.rows };
+    })
+    .catch((err) => {
+      resultFinal = { err };
+    })
+    .finally(() => {
+      return resultFinal;
+    });
+  return resultFinal;
+}
+
+async function moneda(table, params) {
+  let query = EscogerInternoUtil(table, params);
+  let resultFinal = null;
+  await pool
+    .query(query)
+    .then((result) => {
+      resultFinal = { resultFinal: result.rows };
+    })
+    .catch((err) => {
+      resultFinal = { err };
+    })
+    .finally(() => {
+      return resultFinal;
+    });
+  return resultFinal;
+}
 
 module.exports = {
   formatoArchivo,
@@ -1342,4 +1450,8 @@ module.exports = {
   accionesMonedaOriginal,
   formatearDatosEInsertarCabeceras,
   obtenerInformacionDeArchivo,
+  flujoTotal,
+  tipoCuenta,
+  entidadFinanciera,
+  moneda,
 };

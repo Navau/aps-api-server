@@ -92,6 +92,19 @@ function respDatosNoRecibidos400(res, msg) {
   });
 }
 
+function respDatosNoRecibidos400END(res, msg) {
+  res
+    .status(400)
+    .send({
+      resultado: 0,
+      datos: null,
+      mensaje: msg
+        ? msg
+        : "No se envio ningún dato o entrada para la petición.",
+    })
+    .end();
+}
+
 function respArchivoErroneo415(res, err, msg) {
   res.status(415).send({
     resultado: 0,
