@@ -93,9 +93,20 @@ function respDatosNoRecibidos400(res, msg) {
 }
 
 function respArchivoErroneo415(res, err, msg) {
-  res.status(200).send({
+  res.status(415).send({
     resultado: 0,
     datos: null,
+    mensaje: msg
+      ? msg
+      : "El tipo de archivo que se ha recibido no cumple con el formato esperado.",
+    errores: err,
+  });
+}
+
+function respArchivoErroneo200(res, err, data, msg) {
+  res.status(200).send({
+    resultado: 0,
+    datos: data,
     mensaje: msg
       ? msg
       : "El tipo de archivo que se ha recibido no cumple con el formato esperado.",
@@ -122,4 +133,5 @@ module.exports = {
   respIDNoRecibido400,
   respResultadoCorrectoObjeto200,
   respErrorServidor500END,
+  respArchivoErroneo200,
 };

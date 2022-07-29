@@ -632,7 +632,7 @@ function InsertarVariosUtil(table, params) {
 
   params.body && (query = query = query + ";");
 
-  console.log(query);
+  // console.log(query);
 
   return query;
 }

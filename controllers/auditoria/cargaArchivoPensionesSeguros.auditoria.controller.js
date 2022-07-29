@@ -83,6 +83,10 @@ function UltimaCarga(req, res) {
         key: "id_rol",
         value: id_rol,
       },
+      {
+        key: "cargado",
+        value: true,
+      },
     ],
     orderby: {
       field: "nro_carga",

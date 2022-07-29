@@ -51,9 +51,9 @@ function SeleccionarArchivos(req, res) {
       ON "APS_seg_usuario".id_usuario = "APS_seg_usuario_rol".id_usuario 
       JOIN "APS_seg_institucion" 
       ON "APS_seg_institucion".id_institucion = "APS_seg_usuario".id_institucion 
-      WHERE "APS_param_clasificador_comun".sigla = '${periodicidad}' 
+      WHERE "APS_param_clasificador_comun".id_clasificador_comun = '${periodicidad}' 
       AND "APS_seg_usuario".id_usuario = '${id_usuario}' 
-      AND "APS_seg_usuario".status = true;`;
+      AND "APS_param_archivos_pensiones_seguros".status = true;`;
 
     console.log(query);
 

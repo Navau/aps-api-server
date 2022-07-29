@@ -46,6 +46,7 @@ const {
   respIDNoRecibido400,
   respResultadoCorrectoObjeto200,
   respErrorServidor500END,
+  respArchivoErroneo200,
 } = require("../utils/respuesta.utils");
 const { SelectInnerJoinSimple } = require("../utils/multiConsulta.utils");
 
@@ -150,9 +151,9 @@ async function obtenerListaArchivos(params) {
       ON "APS_seg_usuario".id_usuario = "APS_seg_usuario_rol".id_usuario 
       JOIN "APS_seg_institucion" 
       ON "APS_seg_institucion".id_institucion = "APS_seg_usuario".id_institucion 
-      WHERE "APS_param_clasificador_comun".sigla = '${periodicidad}' 
+      WHERE "APS_param_clasificador_comun".id_clasificador_comun = '${periodicidad}' 
       AND "APS_seg_usuario".id_usuario = '${id_usuario}' 
-      AND "APS_seg_usuario".status = true;`;
+      AND "APS_param_archivos_pensiones_seguros".status = true;`;
 
     await pool
       .query(query)
@@ -523,6 +524,7 @@ async function validarArchivosIteraciones(params) {
 
 exports.validarArchivo2 = async (req, res, next) => {
   let fechaInicial = req?.body?.fecha_operacion;
+  const periodicidad = req?.body?.periodicidad;
   try {
     const id_rol = req.user.id_rol;
     const id_usuario = req.user.id_usuario;
@@ -612,6 +614,7 @@ exports.validarArchivo2 = async (req, res, next) => {
             });
             bodyQuery.push({
               id_rol,
+              id_periodo: periodicidad,
               fecha_operacion: fechaOperacion,
               nro_carga: nroCarga === null ? 1 : nroCarga + 1,
               fecha_carga: new Date(),
@@ -731,7 +734,7 @@ exports.validarArchivo2 = async (req, res, next) => {
                     );
                   })
                   .finally(() => {
-                    respArchivoErroneo415(res, errors);
+                    respArchivoErroneo200(res, errors);
                   });
               } else {
                 req.errors = errors;
