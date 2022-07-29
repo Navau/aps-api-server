@@ -32,14 +32,15 @@ function SeleccionarArchivos(req, res) {
       "La información que se mando no es suficiente, falta el ID del usuario."
     );
   } else {
-    let query = `SELECT replace(replace(replace(replace(replace(
+    let query = `SELECT replace(replace(replace(replace(replace(replace(
       "APS_param_archivos_pensiones_seguros".nombre::text, 
       'nnn'::text, "APS_seg_institucion".codigo::text), 
       'aaaa'::text, EXTRACT(year FROM TIMESTAMP '${fecha_operacion}')::text), 
       'mm'::text, lpad(EXTRACT(month FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)), 
       'dd'::text, lpad(EXTRACT(day FROM TIMESTAMP '${fecha_operacion}')::text, 2, '0'::text)), 
       'nntt'::text, "APS_seg_institucion".codigo::text || 
-      "APS_param_archivos_pensiones_seguros".codigo::text) AS archivo, 
+      "APS_param_archivos_pensiones_seguros".codigo::text),
+      'nn'::text, "APS_seg_institucion".codigo::text) AS archivo, 
       "APS_seg_usuario".id_usuario 
       FROM "APS_param_archivos_pensiones_seguros" 
       JOIN "APS_param_clasificador_comun" 
@@ -51,8 +52,11 @@ function SeleccionarArchivos(req, res) {
       JOIN "APS_seg_institucion" 
       ON "APS_seg_institucion".id_institucion = "APS_seg_usuario".id_institucion 
       WHERE "APS_param_clasificador_comun".sigla = '${periodicidad}' 
-      AND "APS_seg_usuario".id_usuario = '${id_usuario}'`;
+      AND "APS_seg_usuario".id_usuario = '${id_usuario}' 
+      AND "APS_seg_usuario".status = true;`;
+
     console.log(query);
+
     pool.query(query, (err, result) => {
       if (err) {
         respErrorServidor500(res, err);

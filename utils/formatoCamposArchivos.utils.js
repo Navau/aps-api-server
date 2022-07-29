@@ -35,220 +35,300 @@ const {
 const { SelectInnerJoinSimple } = require("../utils/multiConsulta.utils");
 
 async function obtenerInformacionDeArchivo(nameFile) {
-  let result = {};
-  let codeCurrentFile = null;
-  let nameTable = null;
-  let paramsInstrumento = null;
-  let paramsCodOperacion = null;
-  let paramsAccionesMO = null;
-  let paramsCodMercado = null;
-  let paramsCalfRiesgo = null;
-  let paramsCodCustodia = null;
-  let headers = null;
-  if (nameFile.includes("K.")) {
-    console.log("ARCHIVO CORRECTO : K", nameFile);
-    codeCurrentFile = "k";
-    nameTable = "APS_aud_carga_archivos_bolsa";
-    headers = await formatoArchivo("k");
-  } else if (nameFile.includes("L.")) {
-  } else if (nameFile.includes("N.")) {
-  } else if (nameFile.includes("P.")) {
-  } else if (nameFile.includes(".413")) {
-    console.log("ARCHIVO CORRECTO : 413", nameFile);
-    codeCurrentFile = "413";
-    nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-    headers = await formatoArchivo(codeCurrentFile);
-    paramsInstrumento = {
-      table: "APS_param_tipo_instrumento",
-      params: {
-        select: ["sigla"],
-        where: [
-          {
-            key: "id_grupo",
-            valuesWhereIn: [125, 214],
-            whereIn: true,
+  console.log("nameFile", nameFile);
+  const obtenerInformacionDeArchivoPromise = new Promise(
+    async (resolve, reject) => {
+      let codeCurrentFile = null;
+      let nameTable = null;
+      let paramsInstrumento = null;
+      let paramsCodOperacion = null;
+      let paramsAccionesMO = null;
+      let paramsCodMercado = null;
+      let paramsCalfRiesgo = null;
+      let paramsCodCustodia = null;
+      let headers = null;
+      if (nameFile.includes("K.")) {
+        console.log("ARCHIVO CORRECTO : K", nameFile);
+        codeCurrentFile = "k";
+        nameTable = "APS_aud_carga_archivos_bolsa";
+        headers = await formatoArchivo("k");
+      } else if (nameFile.includes("L.")) {
+      } else if (nameFile.includes("N.")) {
+      } else if (nameFile.includes("P.")) {
+      } else if (nameFile.includes(".413")) {
+        console.log("ARCHIVO CORRECTO : 413", nameFile);
+        codeCurrentFile = "413";
+        nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+        headers = await formatoArchivo(codeCurrentFile);
+        paramsInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_grupo",
+                valuesWhereIn: [125, 214],
+                whereIn: true,
+              },
+            ],
           },
-        ],
-      },
-    };
-    paramsCodOperacion = {
-      table: "APS_param_tipo_operacion",
-      params: {
-        select: ["codigo_aps"],
-        where: [
-          {
-            key: "tipo",
-            value: "V",
+        };
+        paramsCodOperacion = {
+          table: "APS_param_tipo_operacion",
+          params: {
+            select: ["codigo_aps"],
+            where: [
+              {
+                key: "tipo",
+                value: "V",
+              },
+            ],
           },
-        ],
-      },
-    };
-    paramsAccionesMO = {
-      table: "APS_param_tipo_instrumento",
-      params: {
-        select: ["sigla"],
-        where: [
-          {
-            key: "id_grupo",
-            valuesWhereIn: [125, 214],
-            whereIn: true,
+        };
+        paramsAccionesMO = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_grupo",
+                valuesWhereIn: [125, 214],
+                whereIn: true,
+              },
+            ],
           },
-        ],
-      },
-    };
-    paramsCodMercado = {
-      table: "APS_param_lugar_negociacion",
-      params: {
-        select: ["codigo_aps"],
-        where: [
-          {
-            key: "id_tipo_lugar_negociacion",
-            value: 148,
-            operator: "<>",
+        };
+        paramsCodMercado = {
+          table: "APS_param_lugar_negociacion",
+          params: {
+            select: ["codigo_aps"],
+            where: [
+              {
+                key: "id_tipo_lugar_negociacion",
+                value: 148,
+                operator: "<>",
+              },
+            ],
           },
-        ],
-      },
-    };
-    paramsCalfRiesgo = {
-      table: "APS_param_clasificador_comun",
-      params: {
-        select: ["descripcion"],
-        where: [
-          {
-            key: "id_clasificador_comun_grupo",
-            value: 5,
+        };
+        paramsCalfRiesgo = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["descripcion"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 5,
+              },
+            ],
           },
-        ],
-      },
-    };
-    paramsCodCustodia = {
-      table: "APS_param_clasificador_comun",
-      params: {
-        select: ["sigla"],
-        where: [
-          {
-            key: "id_clasificador_comun_grupo",
-            value: 9,
+        };
+        paramsCodCustodia = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 9,
+              },
+            ],
           },
-        ],
-      },
-    };
-  } else if (nameFile.includes(".411")) {
-    console.log("ARCHIVO CORRECTO : 411", nameFile);
-    codeCurrentFile = "411";
-    nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-    headers = await formatoArchivo(codeCurrentFile);
-    paramsInstrumento = {
-      table: "APS_param_tipo_instrumento",
-      params: {
-        select: ["sigla"],
-        where: [
-          {
-            key: "id_grupo",
-            valuesWhereIn: [135, 138],
-            whereIn: true,
+        };
+      } else if (nameFile.includes(".411")) {
+        console.log("ARCHIVO CORRECTO : 411", nameFile);
+        codeCurrentFile = "411";
+        nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+        headers = await formatoArchivo(codeCurrentFile);
+        paramsInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_grupo",
+                valuesWhereIn: [135, 138],
+                whereIn: true,
+              },
+            ],
           },
-        ],
-      },
-    };
-    paramsCodOperacion = {
-      table: "APS_param_tipo_operacion",
-      params: {
-        select: ["codigo_aps"],
-        // where: [
-        //   {
-        //     key: "tipo",
-        //     value: "V",
-        //   },
-        // ],
-      },
-    };
-    paramsCodMercado = {
-      table: "APS_param_lugar_negociacion",
-      params: {
-        select: ["codigo_aps"],
-        where: [
-          {
-            key: "id_tipo_lugar_negociacion",
-            value: 58,
-            operator: "<>",
+        };
+        paramsCodOperacion = {
+          table: "APS_param_tipo_operacion",
+          params: {
+            select: ["codigo_aps"],
+            // where: [
+            //   {
+            //     key: "tipo",
+            //     value: "V",
+            //   },
+            // ],
           },
-        ],
-      },
-    };
-    paramsCalfRiesgo = {
-      table: "APS_param_clasificador_comun",
-      params: {
-        select: ["descripcion"],
-        where: [
-          {
-            key: "id_clasificador_comun_grupo",
-            value: 6,
+        };
+        paramsCodMercado = {
+          table: "APS_param_lugar_negociacion",
+          params: {
+            select: ["codigo_aps"],
+            where: [
+              {
+                key: "id_tipo_lugar_negociacion",
+                value: 58,
+                operator: "<>",
+              },
+            ],
           },
-        ],
-      },
-    };
-    paramsCodCustodia = {
-      table: "APS_param_clasificador_comun",
-      params: {
-        select: ["sigla"],
-        where: [
-          {
-            key: "id_clasificador_comun_grupo",
-            value: 9,
+        };
+        paramsCalfRiesgo = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["descripcion"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 6,
+              },
+            ],
           },
-        ],
-      },
-    };
-  } else if (nameFile.includes(".441")) {
-    console.log("ARCHIVO CORRECTO : 441", nameFile);
-    codeCurrentFile = "441";
-    nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-    headers = await formatoArchivo(codeCurrentFile);
-    paramsInstrumento = {
-      table: "APS_param_tipo_instrumento",
-      params: {
-        select: ["sigla"],
-        where: [
-          {
-            key: "id_grupo",
-            valuesWhereIn: [135, 138],
-            whereIn: true,
+        };
+        paramsCodCustodia = {
+          table: "APS_param_clasificador_comun",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_clasificador_comun_grupo",
+                value: 9,
+              },
+            ],
           },
-        ],
-      },
-    };
-  } else if (nameFile.includes(".44C")) {
-    console.log("ARCHIVO CORRECTO : 44C", nameFile);
-    codeCurrentFile = "44C";
-    nameTable = "APS_aud_carga_archivos_pensiones_seguros";
-    headers = await formatoArchivo(codeCurrentFile);
-    paramsInstrumento = {
-      table: "APS_param_tipo_instrumento",
-      params: {
-        select: ["sigla"],
-        where: [
-          {
-            key: "id_grupo",
-            valuesWhereIn: [135, 138],
-            whereIn: true,
+        };
+      } else if (nameFile.includes(".441")) {
+        console.log("ARCHIVO CORRECTO : 441", nameFile);
+        codeCurrentFile = "441";
+        nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+        headers = await formatoArchivo(codeCurrentFile);
+        paramsInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_grupo",
+                valuesWhereIn: [135, 138],
+                whereIn: true,
+              },
+            ],
           },
-        ],
-      },
-    };
-  }
-  result = await {
-    codeCurrentFile,
-    nameTable,
-    headers,
-    paramsInstrumento,
-    paramsCodOperacion,
-    paramsAccionesMO,
-    paramsCodMercado,
-    paramsCalfRiesgo,
-    paramsCodCustodia,
-  };
-  return result;
+        };
+      } else if (nameFile.includes(".443")) {
+        console.log("ARCHIVO CORRECTO : 443", nameFile);
+        codeCurrentFile = "443";
+        nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+        headers = await formatoArchivo(codeCurrentFile);
+        paramsInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_grupo",
+                valuesWhereIn: [135, 138],
+                whereIn: true,
+              },
+            ],
+          },
+        };
+      } else if (nameFile.includes(".44C")) {
+        console.log("ARCHIVO CORRECTO : 44C", nameFile);
+        codeCurrentFile = "44C";
+        nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+        headers = await formatoArchivo(codeCurrentFile);
+        paramsInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_grupo",
+                valuesWhereIn: [135, 138],
+                whereIn: true,
+              },
+            ],
+          },
+        };
+      } else if (nameFile.includes(".451")) {
+        console.log("ARCHIVO CORRECTO : 451", nameFile);
+        codeCurrentFile = "451";
+        nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+        headers = await formatoArchivo(codeCurrentFile);
+        paramsInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_grupo",
+                valuesWhereIn: [135, 138],
+                whereIn: true,
+              },
+            ],
+          },
+        };
+      } else if (nameFile.includes(".481")) {
+        console.log("ARCHIVO CORRECTO : 481", nameFile);
+        codeCurrentFile = "481";
+        nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+        headers = await formatoArchivo(codeCurrentFile);
+        paramsInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_grupo",
+                valuesWhereIn: [135, 138],
+                whereIn: true,
+              },
+            ],
+          },
+        };
+      } else if (nameFile.includes(".482")) {
+        console.log("ARCHIVO CORRECTO : 482", nameFile);
+        codeCurrentFile = "482";
+        nameTable = "APS_aud_carga_archivos_pensiones_seguros";
+        headers = await formatoArchivo(codeCurrentFile);
+        paramsInstrumento = {
+          table: "APS_param_tipo_instrumento",
+          params: {
+            select: ["sigla"],
+            where: [
+              {
+                key: "id_grupo",
+                valuesWhereIn: [135, 138],
+                whereIn: true,
+              },
+            ],
+          },
+        };
+      } else {
+        reject();
+      }
+      console.log(codeCurrentFile);
+      console.log(headers);
+      resolve({
+        codeCurrentFile,
+        nameTable,
+        headers,
+        paramsInstrumento,
+        paramsCodOperacion,
+        paramsAccionesMO,
+        paramsCodMercado,
+        paramsCalfRiesgo,
+        paramsCodCustodia,
+      });
+    }
+  );
+  return obtenerInformacionDeArchivoPromise;
 }
 
 async function obtenerCabeceras(table) {
@@ -349,6 +429,19 @@ async function formatoArchivo(type) {
     return headers;
   } else if (type === "481") {
     await obtenerCabeceras("APS_seguro_archivo_481")
+      .then((response) => {
+        let resultAux = [];
+        map(response.rows, (item, index) => {
+          resultAux.push(item.column_name);
+        });
+        headers = resultAux;
+      })
+      .catch((err) => {
+        headers = { err };
+      });
+    return headers;
+  } else if (type === "482") {
+    await obtenerCabeceras("APS_seguro_archivo_482")
       .then((response) => {
         let resultAux = [];
         map(response.rows, (item, index) => {
@@ -522,7 +615,7 @@ async function obtenerValidaciones(typeFile) {
         function: "codigoCustodia",
       },
     ];
-  } else if (typeFile == "411") {
+  } else if (typeFile === "411") {
     result = [
       {
         columnName: "fecha_operacion",
@@ -624,7 +717,7 @@ async function obtenerValidaciones(typeFile) {
         function: "codigoCustodia",
       },
     ];
-  } else if (typeFile == "441") {
+  } else if (typeFile === "441") {
     result = [
       {
         columnName: "tipo_instrumento",
@@ -658,14 +751,14 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "precio_nominal_mo",
-        pattern: /^(\d{1,9})(\.\d{2,2}){1,1}$/,
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "precio_nominal_bs",
-        pattern: /^(\d{1,9})(\.\d{2,2}){1,1}$/,
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
@@ -708,7 +801,67 @@ async function obtenerValidaciones(typeFile) {
         function: null,
       },
     ];
-  } else if (typeFile == "44C") {
+  } else if (typeFile === "443") {
+    result = [
+      {
+        columnName: "fecha_operacion",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        positveNegative: true,
+        required: true,
+        function: "tipoInstrumento",
+      },
+      {
+        columnName: "tipo_instrumento",
+        pattern: /^[A-Za-z0-9]{3,3}$/,
+        positveNegative: true,
+        required: true,
+        function: "tipoInstrumento",
+      },
+      {
+        columnName: "serie",
+        pattern: /^[A-Za-z0-9]{5,23}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "cantidad_acciones",
+        pattern: /^\d{1,7}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "precio_unitario_mo",
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "precio_unitario_bs",
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "precio_total_mo",
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "precio_total_bs",
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+    ];
+  } else if (typeFile === "44C") {
     result = [
       {
         columnName: "tipo_instrumento",
@@ -741,34 +894,34 @@ async function obtenerValidaciones(typeFile) {
       },
       {
         columnName: "pago_intereses",
-        pattern: /^(\d{1,9})(\.\d{2,2}){1,1}$/,
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "amortizacion_capital",
-        pattern: /^(\d{1,9})(\.\d{2,2}){1,1}$/,
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "flujo_total",
-        pattern: /^(\d{1,9})(\.\d{2,2}){1,1}$/,
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "saldo_amortizar",
-        pattern: /^(\d{1,9})(\.\d{2,2}){1,1}$/,
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
     ];
-  } else if (typeFile == "451") {
+  } else if (typeFile === "451") {
     result = [
       {
         columnName: "tipo_cuenta",
@@ -813,25 +966,25 @@ async function obtenerValidaciones(typeFile) {
         function: null,
       },
     ];
-  } else if (typeFile == "481") {
+  } else if (typeFile === "481") {
     result = [
       {
         columnName: "tipo_instrumento",
-        pattern: /^[A-Za-z]{0,3}$/,
+        pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: true,
         required: true,
         function: "tipoInstrumento",
       },
       {
         columnName: "serie",
-        pattern: /^[A-Za-z]{0,3}$/,
+        pattern: /^[A-Za-z0-9]{5,23}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "codigo_valoracion",
-        pattern: /^[A-Za-z]{0,10}$/,
+        pattern: /^[A-Za-z]{10,10}$/,
         positveNegative: true,
         required: true,
         function: "codigoValoracion",
@@ -865,42 +1018,137 @@ async function obtenerValidaciones(typeFile) {
         function: null,
       },
       {
-        columnName: "precio_unitario_mo",
-        pattern: /^(\d{1,9})(\.\d{2,2}){1,1}$/,
+        columnName: "precio_mo",
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "precio_total_mo",
-        pattern: /^(\d{1,9})(\.\d{2,2}){1,1}$/,
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
-        function: null,
+        function: "precioTotal",
       },
       {
-        columnName: "codigo_mo",
+        columnName: "moneda",
         pattern: /^[A-Za-z]{1,1}$/,
         positveNegative: true,
         required: true,
-        function: "codigoMonedaOriginal",
+        function: "codigoMoneda",
       },
       {
         columnName: "precio_total_bs",
-        pattern: /^(\d{1,9})(\.\d{2,2}){1,1}$/,
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
         positveNegative: true,
         required: true,
         function: null,
       },
       {
         columnName: "calificacion_riesgo",
-        pattern: /^[A-Za-z0-9]{0,3}$/,
+        pattern: /^[A-Za-z]{3,3}$/,
         positveNegative: true,
         required: true,
         function: "calificacionRiesgoGrande",
       },
       {
-        columnName: "fecha_adquisicion",
+        columnName: "fecha_operacion",
+        pattern:
+          /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
+        positveNegative: false,
+        required: true,
+        function: null,
+      },
+    ];
+  } else if (typeFile === "482") {
+    result = [
+      {
+        columnName: "tipo_instrumento",
+        pattern: /^[A-Za-z]{3,3}$/,
+        positveNegative: true,
+        required: true,
+        function: "tipoInstrumento",
+      },
+      {
+        columnName: "serie",
+        pattern: /^[A-Za-z0-9]{5,23}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "codigo_valoracion",
+        pattern: /^[A-Za-z]{10,10}$/,
+        positveNegative: true,
+        required: true,
+        function: "codigoValoracion",
+      },
+      {
+        columnName: "tasa_relevante_operacion",
+        pattern: /^([0-9]{0,2})(\.[0-9]{0,8})?$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "cantidad",
+        pattern: /^\d{1,7}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "plazo_valor",
+        pattern: /^\d{1,7}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "plazo_economico",
+        pattern: /^\d{1,7}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "precio_mo",
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "precio_total_mo",
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "precioTotal",
+      },
+      {
+        columnName: "moneda",
+        pattern: /^[A-Za-z]{1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: "codigoMoneda",
+      },
+      {
+        columnName: "precio_total_bs",
+        pattern: /^(\d{1,16})(\.\d{2,2}){1,1}$/,
+        positveNegative: true,
+        required: true,
+        function: null,
+      },
+      {
+        columnName: "calificacion_riesgo",
+        pattern: /^[A-Za-z]{3,3}$/,
+        positveNegative: true,
+        required: true,
+        function: "calificacionRiesgoGrande",
+      },
+      {
+        columnName: "fecha_operacion",
         pattern:
           /^(19|20)(((([02468][048])|([13579][26]))-02-29)|(\d{2})-((02-((0[1-9])|1\d|2[0-8]))|((((0[13456789])|1[012]))-((0[1-9])|((1|2)\d)|30))|(((0[13578])|(1[02]))-31)))$/,
         positveNegative: false,
