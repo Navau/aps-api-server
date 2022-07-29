@@ -255,7 +255,7 @@ async function validarArchivosIteraciones(params) {
             });
             isOkValidate = true;
             isErrorPast = true;
-          } else if (isAllFiles.ok === true && isErrorPast === false) {
+          } else if (isAllFiles.ok === false && isErrorPast === false) {
             map(isAllFiles.missingFiles, (item, index) => {
               errors.push({
                 archivo: item,
@@ -371,7 +371,6 @@ async function validarArchivosIteraciones(params) {
                       });
                     })
                     .finally(async () => {
-                      console.log(arrayDataObject);
                       if (!arrayDataObject?.err) {
                         let arrayValidateObject = await obtenerValidaciones(
                           codeCurrentFile
@@ -493,20 +492,35 @@ async function validarArchivosIteraciones(params) {
                                     });
                                   }
                                 } else if (funct === "accionesMonedaOriginal") {
-                                  const accionesMO =
-                                    infoArchivo?.paramsAccionesMO
-                                      ? await accionesMonedaOriginal({
-                                          numero_acciones:
-                                            item2.numero_acciones,
-                                          precio_unitario:
-                                            item2.precio_unitario,
-                                        })
-                                      : null;
-                                  if (accionesMO.toFixed(2) !== value) {
+                                  try {
+                                    const accionesMO =
+                                      infoArchivo?.paramsAccionesMO
+                                        ? await accionesMonedaOriginal({
+                                            numero_acciones:
+                                              item2.numero_acciones,
+                                            precio_unitario:
+                                              item2.precio_unitario,
+                                          })
+                                        : null;
+                                    if (
+                                      parseFloat(accionesMO)
+                                        .toFixed(2)
+                                        .toString() !== value.toString()
+                                    ) {
+                                      errors.push({
+                                        archivo: item.archivo,
+                                        tipo_error: "VALOR INCORRECTO",
+                                        descripcion: `El contenido del archivo no cumple con el formato correcto.`,
+                                        valor: value,
+                                        columna: columnName,
+                                        fila: index2,
+                                      });
+                                    }
+                                  } catch (err) {
                                     errors.push({
                                       archivo: item.archivo,
                                       tipo_error: "VALOR INCORRECTO",
-                                      descripcion: `El contenido del archivo no cumple con el formato correcto.`,
+                                      descripcion: `Error en tipo de dato. ${err.message}`,
                                       valor: value,
                                       columna: columnName,
                                       fila: index2,
@@ -590,18 +604,33 @@ async function validarArchivosIteraciones(params) {
                                     });
                                   }
                                 } else if (funct === "flujoTotal") {
-                                  const _flujoTotal =
-                                    infoArchivo?.paramsFlujoTotal
-                                      ? await flujoTotal({
-                                          interes: item2.interes,
-                                          amortizacion: item2.amortizacion,
-                                        })
-                                      : null;
-                                  if (_flujoTotal.toFixed(2) !== value) {
+                                  try {
+                                    const _flujoTotal =
+                                      infoArchivo?.paramsFlujoTotal
+                                        ? await flujoTotal({
+                                            interes: item2.interes,
+                                            amortizacion: item2.amortizacion,
+                                          })
+                                        : null;
+                                    if (
+                                      parseFloat(_flujoTotal)
+                                        .toFixed(2)
+                                        .toString() !== value.toString()
+                                    ) {
+                                      errors.push({
+                                        archivo: item.archivo,
+                                        tipo_error: "VALOR INCORRECTO",
+                                        descripcion: `El contenido del archivo no cumple con el formato correcto de Flujo Total.`,
+                                        valor: value,
+                                        columna: columnName,
+                                        fila: index2,
+                                      });
+                                    }
+                                  } catch (err) {
                                     errors.push({
                                       archivo: item.archivo,
                                       tipo_error: "VALOR INCORRECTO",
-                                      descripcion: `El contenido del archivo no cumple con el formato correcto.`,
+                                      descripcion: `Error en tipo de dato. ${err.message}`,
                                       valor: value,
                                       columna: columnName,
                                       fila: index2,

@@ -1204,7 +1204,6 @@ async function formatearDatosEInsertarCabeceras(headers, dataSplit) {
     let arrayDataObject = [];
     let errors = [];
     let isLimitLengthFile = false;
-    console.log(headers);
     headers.splice(0, 1); // ELIMINAR ID DE TABLA
 
     map(["id_carga_archivos"], (item, index) => {
@@ -1310,7 +1309,7 @@ async function tipoMarcacion(params) {
 async function accionesMonedaOriginal(params) {
   const { numero_acciones, precio_unitario } = params;
 
-  return numero_acciones * precio_unitario;
+  return parseFloat(numero_acciones) * parseFloat(precio_unitario);
 }
 
 async function codigoOperacion(table, params) {
@@ -1383,7 +1382,8 @@ async function codigoCustodia(table, params) {
 
 async function flujoTotal(params) {
   const { interes, amortizacion } = params;
-  return interes + amortizacion;
+
+  return parseFloat(interes) + parseFloat(amortizacion);
 }
 
 async function tipoCuenta(table, params) {
