@@ -70,9 +70,7 @@ function ValorMaximo(req, res) {
 }
 
 function UltimaCarga(req, res) {
-  const { id_rol, id_usuario } = req.body;
-  console.log(id_rol);
-  console.log(id_usuario);
+  const { id_rol, id_usuario, cargado } = req.body;
   const params = {
     where: [
       {
@@ -85,7 +83,7 @@ function UltimaCarga(req, res) {
       },
       {
         key: "cargado",
-        value: true,
+        value: cargado,
       },
     ],
     orderby: {
